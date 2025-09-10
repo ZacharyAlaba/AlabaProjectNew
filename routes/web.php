@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/{any}', function () {
     return view('welcome');
 })->where('any', '.*');
+
+// Admin Login Route
+Route::get('/login', 'Auth\LoginController@showLoginForm')->name('login');
+Route::post('/login', 'Auth\LoginController@login');
