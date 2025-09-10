@@ -1,0 +1,56 @@
+// resources/sass/navbar.scss
+.navbar {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    color: #343a40;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.navbar-logo {
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.navbar-links {
+    list-style: none !important;
+    display: flex !important;
+    gap: 30px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.navbar-links li {
+    display: inline-block !important;
+}
+
+.navbar-links li a {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.navbar-links li a:hover {
+    background-color: #f0f4fa;
+    color: #0056b3;
+}

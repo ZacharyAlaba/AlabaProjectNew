@@ -1,0 +1,20 @@
+// filepath: c:\Users\User\AlabaProjectNew\resources\sass\aboutus.scss
+.aboutus-page {
+    max-width: 700px;
+    margin: 60px auto;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+
+    h2 {
+        font-size: 2rem;
+        color: #343a40;
+        margin-bottom: 16px;
+    }
+
+    p {
+        font-size: 1.1rem;
+        color: #6c757d;
+    }
+}
