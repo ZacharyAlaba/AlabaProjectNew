@@ -65,3 +65,86 @@
         }
     }
 }
+
+.contactus-page.custom-bg {
+    background: #e6f2eb;
+    min-height: 100vh;
+    padding: 60px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.contact-form {
+    background: #fff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    max-width: 700px;
+    width: 100%;
+    margin-bottom: 32px;
+
+    label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+        display: block;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        &:hover {
+            background-color: #0056b3;
+        }
+    }
+}
+
+.contact-table {
+    width: 700px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border-collapse: collapse;
+    margin-bottom: 40px;
+
+    th, td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+    }
+    th {
+        background: #f8f9fa;
+        font-weight: bold;
+    }
+    .edit-btn {
+        background: #22c55e;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .delete-btn {
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+}

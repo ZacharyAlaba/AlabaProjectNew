@@ -7,23 +7,17 @@ export default function Login() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setError(null);
 
-        const response = await fetch("/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password }),
-        });
-
-        if (response.ok) {
+        if (
+            email === "zachary.alaba@urios.edu.ph" &&
+            password === "Janacute123"
+        ) {
             navigate("/admin");
         } else {
-            const data = await response.json();
-            setError(data.message || "Login failed. Please try again.");
+            setError("Invalid credentials");
         }
     };
 
