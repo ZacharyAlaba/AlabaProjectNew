@@ -12037,6 +12037,35 @@ textarea.form-control-lg {
   color: #fff;
 }
 
+.home-footer {
+  width: 100%;
+  background: #3a1a2c;
+  color: #fff;
+  padding: 18px 0;
+  text-align: center;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+.home-footer span {
+  margin-right: 24px;
+}
+.home-footer a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 8px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.home-footer a:hover {
+  color: #ffd700;
+  text-decoration: underline;
+}
+
 .aboutus-page {
   max-width: 700px;
   margin: 60px auto;
@@ -12192,6 +12221,51 @@ textarea.form-control-lg {
   padding: 6px 12px;
   cursor: pointer;
   font-weight: bold;
+}
+
+.contactus-footer {
+  width: 100vw;
+  background: #1565c0;
+  color: #fff;
+  padding: 16px 0 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  font-size: 0.98rem;
+  margin-top: 0;
+  border-radius: 0;
+}
+.contactus-footer .footer-left {
+  flex: 1 1 220px;
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+.contactus-footer .footer-links {
+  flex: 2 1 320px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+}
+.contactus-footer .footer-links a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-size: 0.98rem;
+}
+.contactus-footer .footer-links a:hover {
+  color: #ffd700;
+  text-decoration: underline;
+}
+.contactus-footer .footer-credit {
+  flex: 1 1 180px;
+  text-align: right;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  margin-top: 0;
 }
 
 .navbar {

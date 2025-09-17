@@ -9,6 +9,13 @@ export default function Home() {
                 <p>Let your light shine now and forever</p>
                 <Link className="hero-btn" to="/aboutus">About us</Link>
             </div>
+            {/* Footer */}
+            <footer className="home-footer">
+                <span>© Zachary Jon C. Alaba 2025 Father Saturnino Urios University. All rights reserved.</span>
+                <Link to="/privacy-policy">Privacy Policy</Link>
+                <Link to="/terms">Terms of Use</Link>
+                <Link to="/sitemap">Sitemap</Link>
+            </footer>
         </div>
     );
 }
