@@ -1,33 +1,49 @@
 import React, { useState, useRef, useEffect } from "react";
 
-const sampleStudents = [
-    { id: "STU240001", name: "John Michael Smith", course: "Computer Science", year: "3rd Year", email: "john.smith@student.edu", phone: "+1 (555) 123-4567", age: 23, gpa: 3.85, department: "Computer Science", status: "ACTIVE" },
-    { id: "STU240002", name: "Sarah Elizabeth Johnson", course: "Business Administration", year: "2nd Year", email: "sarah.johnson@student.edu", phone: "+1 (555) 234-5678", age: 22, gpa: 3.92, department: "Business", status: "ACTIVE" },
-    { id: "STU240003", name: "Michael Brown", course: "Engineering", year: "4th Year", email: "michael.brown@student.edu", phone: "+1 (555) 345-6789", age: 23, gpa: 3.67, department: "Engineering", status: "ACTIVE" },
-    { id: "STU240004", name: "Emily Rose Davis", course: "Computer Science", year: "1st Year", email: "emily.davis@student.edu", phone: "+1 (555) 456-7890", age: 21, gpa: 4.00, department: "Computer Science", status: "ACTIVE" },
-    { id: "STU240005", name: "Alex Jordan Wilson", course: "Business Administration", year: "3rd Year", email: "alex.wilson@student.edu", phone: "+1 (555) 567-8901", age: 22, gpa: 3.60, department: "Business", status: "ACTIVE" },
+const sampleFaculty = [
+    {
+        id: "FAC-2015-001",
+        name: "Dr. Emily Wilson",
+        position: "Professor",
+        department: "Computer Science",
+        email: "emily.wilson@university.edu",
+        phone: "+1 (555) 111-2222",
+        joined: "2015-08-20",
+        specialization: "Artificial Intelligence and Machine Learning",
+        status: "ACTIVE"
+    },
+    {
+        id: "FAC-2018-005",
+        name: "Prof. David Martinez",
+        position: "Associate Professor",
+        department: "Business",
+        email: "david.martinez@university.edu",
+        phone: "+1 (555) 333-4444",
+        joined: "2018-01-15",
+        specialization: "Strategic Management and Organizational Behavior",
+        status: "ACTIVE"
+    }
 ];
 
-function getInitialStudents() {
-    const stored = localStorage.getItem("students");
-    return stored ? JSON.parse(stored) : sampleStudents;
+function getInitialFaculty() {
+    const stored = localStorage.getItem("faculty");
+    return stored ? JSON.parse(stored) : sampleFaculty;
 }
 
-export default function StudentManagement() {
-    const [students, setStudents] = useState(getInitialStudents());
+export default function FacultyManagement() {
+    const [faculty, setFaculty] = useState(getInitialFaculty());
     const [menuOpenId, setMenuOpenId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedStudent, setSelectedStudent] = useState(null);
-    const [editStudent, setEditStudent] = useState(null);
-    const [filter, setFilter] = useState("All Courses");
+    const [selectedFaculty, setSelectedFaculty] = useState(null);
+    const [editFaculty, setEditFaculty] = useState(null);
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
     const menuRef = useRef(null);
 
-    // Persist students to localStorage
+    // Persist faculty to localStorage
     useEffect(() => {
-        localStorage.setItem("students", JSON.stringify(students));
-    }, [students]);
+        localStorage.setItem("faculty", JSON.stringify(faculty));
+    }, [faculty]);
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -46,81 +62,68 @@ export default function StudentManagement() {
         };
     }, [menuOpenId]);
 
-    // Add student handler
-    const handleAddStudent = (newStudent) => {
-        setStudents([...students, newStudent]);
+    // Add faculty handler
+    const handleAddFaculty = (newFaculty) => {
+        setFaculty([...faculty, newFaculty]);
         setShowAddModal(false);
     };
 
-    // Delete student handler
-    const handleDeleteStudent = (id) => {
-        setStudents(students.filter(s => s.id !== id));
+    // Delete faculty handler
+    const handleDeleteFaculty = (id) => {
+        setFaculty(faculty.filter(f => f.id !== id));
         setMenuOpenId(null);
-        setSelectedStudent(null);
+        setSelectedFaculty(null);
     };
 
-    // Edit student handler
-    const handleEditStudent = (student) => {
-        setEditStudent(student);
+    // Edit faculty handler
+    const handleEditFaculty = (fac) => {
+        setEditFaculty(fac);
         setShowEditModal(true);
         setMenuOpenId(null);
     };
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        setStudents(students.map(s => s.id === editStudent.id ? editStudent : s));
+        setFaculty(faculty.map(f => f.id === editFaculty.id ? editFaculty : f));
         setShowEditModal(false);
-        setEditStudent(null);
+        setEditFaculty(null);
     };
 
-    // Filter students
-    const filteredStudents = students.filter(student => {
-        // Normalize for case-insensitive comparison
-        const courseMatch =
-            filter === "All Courses" ||
-            (student.course && student.course.toLowerCase().includes(filter.toLowerCase()));
-        const deptMatch =
-            departmentFilter === "All Departments" ||
-            (student.department && student.department.toLowerCase().includes(departmentFilter.toLowerCase()));
-        return courseMatch && deptMatch;
-    });
+    // Filter faculty
+    const filteredFaculty = faculty.filter(fac =>
+        departmentFilter === "All Departments" ||
+        (fac.department && fac.department.toLowerCase().includes(departmentFilter.toLowerCase()))
+    );
 
     return (
-        <div className="student-management-content">
+        <div className="faculty-management-content">
             <header className="top-bar">
-                <h1>Students</h1>
-                <input type="search" placeholder="Search students by name, email, or student ID..." />
+                <h1>Faculty</h1>
+                <input type="search" placeholder="Search faculty by name, email, or department..." />
                 <i className="fas fa-bell notification"></i>
                 <div className="user-info">
                     <i className="fas fa-circle user-status online"></i>
                     <span>AU Admin User... ONLINE</span>
                 </div>
-                <button className="add-student-btn" onClick={() => setShowAddModal(true)}>+ Add Student</button>
+                <button className="add-student-btn" onClick={() => setShowAddModal(true)}>+ Add Faculty</button>
             </header>
             <section className="dashboard-header">
-                <h2>Student Management</h2>
-                <p>Manage student profiles and academic information</p>
+                <h2>Faculty Management</h2>
+                <p>Manage faculty profiles and academic staff</p>
             </section>
             <section className="filters">
-                <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                    <option value="All Courses">All Courses</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Business Administration">Business Administration</option>
-                    <option value="Engineering">Engineering</option>
-                </select>
                 <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
                     <option value="All Departments">All Departments</option>
                     <option value="Computer Science">Computer Science</option>
                     <option value="Business">Business</option>
-                    <option value="Engineering">Engineering</option>
                 </select>
             </section>
             <section className="students-grid">
-                {filteredStudents.map((student) => (
-                    <div className="student-card" key={student.id} style={{ position: "relative" }}>
+                {filteredFaculty.map((fac) => (
+                    <div className="student-card" key={fac.id} style={{ position: "relative" }}>
                         <div className="student-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <span className="initials">
-                                {student.name.split(' ').map(n => n[0]).join('')}
+                                {fac.name.split(' ').map(n => n[0]).join('')}
                             </span>
                             <span className="status" style={{
                                 background: "#a855f7",
@@ -129,7 +132,7 @@ export default function StudentManagement() {
                                 padding: "2px 10px",
                                 fontSize: "12px",
                                 marginLeft: "8px"
-                            }}>{student.status}</span>
+                            }}>{fac.status}</span>
                             {/* Three-dot menu */}
                             <button
                                 className="menu-btn"
@@ -141,13 +144,13 @@ export default function StudentManagement() {
                                     cursor: "pointer",
                                     fontSize: "22px"
                                 }}
-                                onClick={() => setMenuOpenId(student.id)}
+                                onClick={() => setMenuOpenId(fac.id)}
                                 aria-label="Open menu"
                             >
                                 &#8942;
                             </button>
                             {/* Dropdown menu */}
-                            {menuOpenId === student.id && (
+                            {menuOpenId === fac.id && (
                                 <div
                                     className="card-menu"
                                     ref={menuRef}
@@ -163,35 +166,44 @@ export default function StudentManagement() {
                                         padding: "8px 0"
                                     }}
                                 >
-                                    <button className="menu-item" style={menuItemStyle} onClick={() => { setMenuOpenId(null); setSelectedStudent(student); }}>
+                                    <button className="menu-item" style={menuItemStyle} onClick={() => { setMenuOpenId(null); setSelectedFaculty(fac); }}>
                                         <i className="fas fa-eye"></i> View Details
                                     </button>
-                                    <button className="menu-item" style={menuItemStyle} onClick={() => handleEditStudent(student)}>
+                                    <button className="menu-item" style={menuItemStyle} onClick={() => handleEditFaculty(fac)}>
                                         <i className="fas fa-edit"></i> Edit
                                     </button>
-                                    <button className="menu-item" style={menuItemStyle} onClick={() => { setMenuOpenId(null); alert("Deactivate"); }}>
-                                        <i className="fas fa-ban"></i> Deactivate
-                                    </button>
-                                    <button className="menu-item" style={{ ...menuItemStyle, color: "#ef4444" }} onClick={() => handleDeleteStudent(student.id)}>
+                                    <button className="menu-item" style={{ ...menuItemStyle, color: "#ef4444" }} onClick={() => handleDeleteFaculty(fac.id)}>
                                         <i className="fas fa-trash"></i> Delete
                                     </button>
                                 </div>
                             )}
                         </div>
-                        <h3>{student.name}</h3>
-                        <p>{student.id}</p>
-                        <p>{student.course} - {student.year}</p>
-                        <p>{student.email}</p>
-                        <p>{student.phone}</p>
-                        <p>Age {student.age} years</p>
-                        <p>Dept: {student.department}</p>
-                        <p>GPA: <span className="gpa">{student.gpa}</span></p>
+                        <h3>{fac.name}</h3>
+                        <p>{fac.position}</p>
+                        <span className="badge" style={{
+                            background: "#22c55e",
+                            color: "#fff",
+                            borderRadius: "8px",
+                            padding: "2px 10px",
+                            fontSize: "12px",
+                            marginRight: "8px"
+                        }}>{fac.department}</span>
+                        <p><i className="fas fa-envelope"></i> {fac.email}</p>
+                        <p><i className="fas fa-phone"></i> {fac.phone}</p>
+                        <p><i className="fas fa-calendar"></i> Joined {fac.joined}</p>
+                        <p>ID: {fac.id}</p>
+                        <div style={{ borderTop: "1px solid #333", margin: "10px 0" }}></div>
+                        <div>
+                            <span style={{ fontWeight: "bold", fontSize: "13px" }}>Specialization:</span>
+                            <br />
+                            <span style={{ fontSize: "13px" }}>{fac.specialization}</span>
+                        </div>
                     </div>
                 ))}
             </section>
 
-            {/* Student Details Modal */}
-            {selectedStudent && (
+            {/* Faculty Details Modal */}
+            {selectedFaculty && (
                 <div className="modal-overlay" style={{
                     position: "fixed",
                     top: 0, left: 0, right: 0, bottom: 0,
@@ -220,24 +232,23 @@ export default function StudentManagement() {
                                 fontSize: "20px",
                                 cursor: "pointer"
                             }}
-                            onClick={() => setSelectedStudent(null)}
+                            onClick={() => setSelectedFaculty(null)}
                         >×</button>
-                        <h2>{selectedStudent.name}</h2>
-                        <p>ID: {selectedStudent.id}</p>
-                        <p>Course: {selectedStudent.course}</p>
-                        <p>Year: {selectedStudent.year}</p>
-                        <p>Email: {selectedStudent.email}</p>
-                        <p>Phone: {selectedStudent.phone}</p>
-                        <p>Age: {selectedStudent.age}</p>
-                        <p>Department: {selectedStudent.department}</p>
-                        <p>GPA: {selectedStudent.gpa}</p>
-                        <p>Status: {selectedStudent.status}</p>
+                        <h2>{selectedFaculty.name}</h2>
+                        <p>Position: {selectedFaculty.position}</p>
+                        <p>Department: {selectedFaculty.department}</p>
+                        <p>Email: {selectedFaculty.email}</p>
+                        <p>Phone: {selectedFaculty.phone}</p>
+                        <p>Joined: {selectedFaculty.joined}</p>
+                        <p>ID: {selectedFaculty.id}</p>
+                        <p>Specialization: {selectedFaculty.specialization}</p>
+                        <p>Status: {selectedFaculty.status}</p>
                     </div>
                 </div>
             )}
 
-            {/* Edit Student Modal */}
-            {showEditModal && editStudent && (
+            {/* Edit Faculty Modal */}
+            {showEditModal && editFaculty && (
                 <div className="modal-overlay" style={{
                     position: "fixed",
                     top: 0, left: 0, right: 0, bottom: 0,
@@ -268,39 +279,36 @@ export default function StudentManagement() {
                             }}
                             onClick={() => setShowEditModal(false)}
                         >×</button>
-                        <h2>Edit Student</h2>
+                        <h2>Edit Faculty</h2>
                         <form onSubmit={handleEditSubmit}>
                             <input name="name" placeholder="Full Name" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.name}
-                                onChange={e => setEditStudent({ ...editStudent, name: e.target.value })} />
-                            <select name="course" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent ? editStudent.course : ""}
-                                onChange={e => editStudent ? setEditStudent({ ...editStudent, course: e.target.value }) : null}
-                            >
-                                <option value="">Select Course</option>
+                                value={editFaculty.name}
+                                onChange={e => setEditFaculty({ ...editFaculty, name: e.target.value })} />
+                            <input name="position" placeholder="Position" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.position}
+                                onChange={e => setEditFaculty({ ...editFaculty, position: e.target.value })} />
+                            <select name="department" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.department}
+                                onChange={e => setEditFaculty({ ...editFaculty, department: e.target.value })}>
+                                <option value="">Select Department</option>
                                 <option value="Computer Science">Computer Science</option>
-                                <option value="Business Administration">Business Administration</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="BSIT">BSIT</option>
+                                <option value="Business">Business</option>
                             </select>
-                            <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.year}
-                                onChange={e => setEditStudent({ ...editStudent, year: e.target.value })} />
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.email}
-                                onChange={e => setEditStudent({ ...editStudent, email: e.target.value })} />
+                                value={editFaculty.email}
+                                onChange={e => setEditFaculty({ ...editFaculty, email: e.target.value })} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.phone}
-                                onChange={e => setEditStudent({ ...editStudent, phone: e.target.value })} />
-                            <input name="age" placeholder="Age" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.age}
-                                onChange={e => setEditStudent({ ...editStudent, age: e.target.value })} />
-                            <input name="gpa" placeholder="GPA" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.gpa}
-                                onChange={e => setEditStudent({ ...editStudent, gpa: e.target.value })} />
-                            <input name="department" placeholder="Department" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editStudent.department}
-                                onChange={e => setEditStudent({ ...editStudent, department: e.target.value })} />
+                                value={editFaculty.phone}
+                                onChange={e => setEditFaculty({ ...editFaculty, phone: e.target.value })} />
+                            <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.joined}
+                                onChange={e => setEditFaculty({ ...editFaculty, joined: e.target.value })} />
+                            <input name="id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.id}
+                                onChange={e => setEditFaculty({ ...editFaculty, id: e.target.value })} />
+                            <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.specialization}
+                                onChange={e => setEditFaculty({ ...editFaculty, specialization: e.target.value })} />
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",
@@ -316,7 +324,7 @@ export default function StudentManagement() {
                 </div>
             )}
 
-            {/* Add Student Modal */}
+            {/* Add Faculty Modal */}
             {showAddModal && (
                 <div className="modal-overlay" style={{
                     position: "fixed",
@@ -348,32 +356,35 @@ export default function StudentManagement() {
                             }}
                             onClick={() => setShowAddModal(false)}
                         >×</button>
-                        <h2>Add New Student</h2>
+                        <h2>Add New Faculty</h2>
                         <form onSubmit={e => {
                             e.preventDefault();
                             const form = e.target;
-                            const newStudent = {
-                                id: "STU" + Math.floor(Math.random() * 1000000),
+                            const newFaculty = {
                                 name: form.name.value,
-                                course: form.course.value,
-                                year: form.year.value,
+                                position: form.position.value,
+                                department: form.department.value,
                                 email: form.email.value,
                                 phone: form.phone.value,
-                                age: form.age.value,
-                                gpa: form.gpa.value,
-                                department: form.department.value,
+                                joined: form.joined.value,
+                                id: form.id.value,
+                                specialization: form.specialization.value,
                                 status: "ACTIVE"
                             };
-                            handleAddStudent(newStudent);
+                            handleAddFaculty(newFaculty);
                         }}>
                             <input name="name" placeholder="Full Name" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="course" placeholder="Course" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <input name="position" placeholder="Position" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <select name="department" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Department</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Business">Business</option>
+                            </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="age" placeholder="Age" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="gpa" placeholder="GPA" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="department" placeholder="Department" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <input name="id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }} />
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",
@@ -383,7 +394,7 @@ export default function StudentManagement() {
                                 fontWeight: "bold",
                                 cursor: "pointer",
                                 marginTop: "12px"
-                            }}>Add Student</button>
+                            }}>Add Faculty</button>
                         </form>
                     </div>
                 </div>

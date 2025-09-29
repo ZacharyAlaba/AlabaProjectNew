@@ -1,12 +1,13 @@
 // filepath: c:\Users\User\AlabaProjectNew\resources\sass\home.scss
 .home-page {
     min-height: 100vh;
+    height: 100vh;
     position: relative;
-    background: url('/images/hero-bg.jpg') no-repeat center/cover; // Add your image to public/images/hero-bg.jpg
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    z-index: 0;
+    background: #f8f9fa;
     padding: 0;
+    display: flex;
+    flex-direction: column;
 
     &::before {
         content: "";
@@ -17,6 +18,7 @@
         height: 100%;
         background: rgba(0, 0, 0, 0.4); // Dark overlay for readability
         z-index: 1;
+        pointer-events: none; // <-- Add this line
     }
 
     .home-hero {
@@ -58,6 +60,57 @@
                 background: #0056b3;
                 color: #fff;
             }
+        }
+    }
+
+    .carousel {
+        height: 100vh;
+        min-height: 100vh;
+
+        .slide {
+            height: 100vh;
+            min-height: 100vh;
+            position: relative;
+
+            img {
+                width: 100vw;
+                height: 100vh;
+                object-fit: cover;
+            }
+        }
+    }
+
+    .carousel-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 32px 40px;
+        border-radius: 12px;
+        max-width: 500px;
+        text-align: center;
+        z-index: 10; // <-- Make sure this is higher than ::before
+    }
+
+    .carousel-btn {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 10px 28px;
+        background: #007bff;
+        color: #fff;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s, box-shadow 0.2s;
+        cursor: pointer; // <-- Add this line
+
+        &:hover {
+            background: #0056b3;
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); // Optional for effect
+            text-decoration: underline; // Optional for effect
         }
     }
 }

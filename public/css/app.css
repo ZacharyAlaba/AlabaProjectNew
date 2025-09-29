@@ -11982,12 +11982,13 @@ textarea.form-control-lg {
 }
 .home-page {
   min-height: 100vh;
+  height: 100vh;
   position: relative;
-  background: url("/images/hero-bg.jpg") no-repeat center/cover;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 0;
+  background: #f8f9fa;
   padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 .home-page::before {
   content: "";
@@ -11998,6 +11999,7 @@ textarea.form-control-lg {
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
   z-index: 1;
+  pointer-events: none;
 }
 .home-page .home-hero {
   position: relative;
@@ -12035,6 +12037,52 @@ textarea.form-control-lg {
 .home-page .home-hero .hero-btn:hover {
   background: #0056b3;
   color: #fff;
+}
+.home-page .carousel {
+  height: 100vh;
+  min-height: 100vh;
+}
+.home-page .carousel .slide {
+  height: 100vh;
+  min-height: 100vh;
+  position: relative;
+}
+.home-page .carousel .slide img {
+  width: 100vw;
+  height: 100vh;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+.home-page .carousel-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 32px 40px;
+  border-radius: 12px;
+  max-width: 500px;
+  text-align: center;
+  z-index: 10;
+}
+.home-page .carousel-btn {
+  display: inline-block;
+  margin-top: 18px;
+  padding: 10px 28px;
+  background: #007bff;
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.home-page .carousel-btn:hover {
+  background: #0056b3;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  text-decoration: underline;
 }
 
 .home-footer {

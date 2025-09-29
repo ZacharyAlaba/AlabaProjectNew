@@ -10,12 +10,18 @@ import AdminDashboard from "./AdminDashboard";
 import Navbar from "./Navbar";
 import StudentManagement from "./StudentManagement";
 import AddStudent from "./AddStudent";
+import FacultyManagement from './FacultyManagement';
+import Reports from "./Reports";
+import Settings from "./Settings";
 
 function AppRoutes() {
     const location = useLocation();
+    // Hide Navbar on any /admin route
+    const isAdminRoute = location.pathname.startsWith("/admin");
+
     return (
         <>
-            {location.pathname !== "/admin" && <Navbar />}
+            {!isAdminRoute && <Navbar />}
             <div className="page-content">
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -24,10 +30,9 @@ function AppRoutes() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/admin" element={<AdminDashboard />}>
                         <Route path="students" element={<StudentManagement />} />
-                        <Route path="students/add" element={<AddStudent />} />
-                        <Route path="faculty" element={<div>Faculty Management Page</div>} />
-                        <Route path="reports" element={<div>Reports Page</div>} />
-                        <Route path="settings" element={<div>Settings Page</div>} />
+                        <Route path="faculty" element={<FacultyManagement />} />
+                        <Route path="reports" element={<Reports />} />
+                        <Route path="settings" element={<Settings />} />
                         <Route path="profile" element={<div>Profile Page</div>} />
                     </Route>
                 </Routes>
