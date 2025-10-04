@@ -276,8 +276,8 @@ export default function FacultyManagement() {
                                 value={editFaculty.joined}
                                 onChange={e => setEditFaculty({ ...editFaculty, joined: e.target.value })} />
                             <input name="id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editFaculty.id}
-                                onChange={e => setEditFaculty({ ...editFaculty, id: e.target.value })} />
+                                value={editFaculty.faculty_id}
+                                onChange={e => setEditFaculty({ ...editFaculty, faculty_id: e.target.value })} />
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.specialization}
                                 onChange={e => setEditFaculty({ ...editFaculty, specialization: e.target.value })} />
@@ -340,7 +340,6 @@ export default function FacultyManagement() {
                                 email: form.email.value,
                                 phone: form.phone.value,
                                 joined: form.joined.value,
-                                id: form.id.value,
                                 specialization: form.specialization.value,
                                 status: "ACTIVE"
                             };

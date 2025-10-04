@@ -85526,10 +85526,10 @@ function FacultyManagement() {
       width: "100%",
       marginBottom: "8px"
     },
-    value: editFaculty.id,
+    value: editFaculty.faculty_id,
     onChange: function onChange(e) {
       return setEditFaculty(_objectSpread(_objectSpread({}, editFaculty), {}, {
-        id: e.target.value
+        faculty_id: e.target.value
       }));
     }
   }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
@@ -85608,7 +85608,6 @@ function FacultyManagement() {
         email: form.email.value,
         phone: form.phone.value,
         joined: form.joined.value,
-        id: form.id.value,
         specialization: form.specialization.value,
         status: "ACTIVE"
       };
