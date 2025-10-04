@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bar, Pie } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -10,6 +10,8 @@ import {
     Tooltip,
     Legend,
 } from "chart.js";
+import ProfileWidget from "./ProfileWidget";
+import { getProfile } from "./MyProfile"; // Make sure getProfile is exported
 
 ChartJS.register(
     CategoryScale,
@@ -62,10 +64,33 @@ const facultyDetails = [
     { dept: "Arts & Sciences", total: 12, professors: 3, associates: 5 }
 ];
 
+function getStudentCount() {
+    const students = JSON.parse(localStorage.getItem("students") || "[]");
+    return students.length;
+}
+function getFacultyCount() {
+    const faculty = JSON.parse(localStorage.getItem("faculty") || "[]");
+    return faculty.length;
+}
+
 export default function Reports() {
     const [reportType, setReportType] = useState("Student Report");
     const [course, setCourse] = useState("All Courses");
     const [academicYear, setAcademicYear] = useState("2024-2025");
+    const [students, setStudents] = useState([]);
+    const [faculty, setFaculty] = useState([]);
+
+    useEffect(() => {
+        fetch("/api/students")
+            .then(res => res.json())
+            .then(data => setStudents(data));
+        fetch("/api/faculty")
+            .then(res => res.json())
+            .then(data => setFaculty(data));
+    }, []);
+
+    const totalStudents = students.length;
+    const totalFaculty = faculty.length;
 
     // Chart data
     const barData = {
@@ -96,8 +121,13 @@ export default function Reports() {
         ]
     };
 
+    const profile = getProfile();
+
     return (
         <div className="reports-content" style={{ padding: "32px" }}>
+            <header className="top-bar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+                <ProfileWidget profile={profile} />
+            </header>
             <h2 style={{ color: "#a855f7" }}>Reports</h2>
             <p>Generate and analyze comprehensive reports</p>
             <div className="report-filters" style={{
@@ -143,13 +173,13 @@ export default function Reports() {
             }}>
                 <div className="stat-card" style={statCardStyle}>
                     <i className="fas fa-user-graduate" style={{ fontSize: "32px", color: "#3b82f6" }}></i>
-                    <div style={{ fontSize: "32px", fontWeight: "bold" }}>1,247</div>
+                    <div style={{ fontSize: "32px", fontWeight: "bold" }}>{totalStudents}</div>
                     <div>Total Students</div>
                     <div style={{ color: "#22c55e", fontSize: "13px" }}>↑ +12.5%</div>
                 </div>
                 <div className="stat-card" style={statCardStyle}>
                     <i className="fas fa-user-tie" style={{ fontSize: "32px", color: "#22d3ee" }}></i>
-                    <div style={{ fontSize: "32px", fontWeight: "bold" }}>101</div>
+                    <div style={{ fontSize: "32px", fontWeight: "bold" }}>{totalFaculty}</div>
                     <div>Total Faculty</div>
                     <div style={{ color: "#22c55e", fontSize: "13px" }}>↑ +3.1%</div>
                 </div>

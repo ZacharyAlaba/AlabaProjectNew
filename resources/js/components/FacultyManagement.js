@@ -1,37 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-
-const sampleFaculty = [
-    {
-        id: "FAC-2015-001",
-        name: "Dr. Emily Wilson",
-        position: "Professor",
-        department: "Computer Science",
-        email: "emily.wilson@university.edu",
-        phone: "+1 (555) 111-2222",
-        joined: "2015-08-20",
-        specialization: "Artificial Intelligence and Machine Learning",
-        status: "ACTIVE"
-    },
-    {
-        id: "FAC-2018-005",
-        name: "Prof. David Martinez",
-        position: "Associate Professor",
-        department: "Business",
-        email: "david.martinez@university.edu",
-        phone: "+1 (555) 333-4444",
-        joined: "2018-01-15",
-        specialization: "Strategic Management and Organizational Behavior",
-        status: "ACTIVE"
-    }
-];
-
-function getInitialFaculty() {
-    const stored = localStorage.getItem("faculty");
-    return stored ? JSON.parse(stored) : sampleFaculty;
-}
+import axios from "axios";
+import ProfileWidget from "./ProfileWidget";
+import { getProfile } from "./MyProfile";
 
 export default function FacultyManagement() {
-    const [faculty, setFaculty] = useState(getInitialFaculty());
+    const [faculty, setFaculty] = useState([]);
     const [menuOpenId, setMenuOpenId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -39,37 +12,25 @@ export default function FacultyManagement() {
     const [editFaculty, setEditFaculty] = useState(null);
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
     const menuRef = useRef(null);
+    const profile = getProfile();
 
-    // Persist faculty to localStorage
+    // Fetch faculty from API
     useEffect(() => {
-        localStorage.setItem("faculty", JSON.stringify(faculty));
-    }, [faculty]);
+        axios.get("/api/faculty").then(res => {
+            setFaculty(Array.isArray(res.data) ? res.data : []);
+        });
+    }, []);
 
-    // Close menu when clicking outside
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setMenuOpenId(null);
-            }
-        }
-        if (menuOpenId) {
-            document.addEventListener("mousedown", handleClickOutside);
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [menuOpenId]);
-
-    // Add faculty handler
-    const handleAddFaculty = (newFaculty) => {
-        setFaculty([...faculty, newFaculty]);
+    // Add faculty handler (API)
+    const handleAddFaculty = async (newFaculty) => {
+        const res = await axios.post("/api/faculty", newFaculty);
+        setFaculty([...faculty, res.data]);
         setShowAddModal(false);
     };
 
-    // Delete faculty handler
-    const handleDeleteFaculty = (id) => {
+    // Delete faculty handler (API)
+    const handleDeleteFaculty = async (id) => {
+        await axios.delete(`/api/faculty/${id}`);
         setFaculty(faculty.filter(f => f.id !== id));
         setMenuOpenId(null);
         setSelectedFaculty(null);
@@ -82,9 +43,10 @@ export default function FacultyManagement() {
         setMenuOpenId(null);
     };
 
-    const handleEditSubmit = (e) => {
+    const handleEditSubmit = async (e) => {
         e.preventDefault();
-        setFaculty(faculty.map(f => f.id === editFaculty.id ? editFaculty : f));
+        const res = await axios.put(`/api/faculty/${editFaculty.id}`, editFaculty);
+        setFaculty(faculty.map(f => f.id === editFaculty.id ? res.data : f));
         setShowEditModal(false);
         setEditFaculty(null);
     };
@@ -97,19 +59,29 @@ export default function FacultyManagement() {
 
     return (
         <div className="faculty-management-content">
-            <header className="top-bar">
-                <h1>Faculty</h1>
-                <input type="search" placeholder="Search faculty by name, email, or department..." />
-                <i className="fas fa-bell notification"></i>
-                <div className="user-info">
-                    <i className="fas fa-circle user-status online"></i>
-                    <span>AU Admin User... ONLINE</span>
-                </div>
-                <button className="add-student-btn" onClick={() => setShowAddModal(true)}>+ Add Faculty</button>
+            <header className="top-bar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "18px" }}>
+                <ProfileWidget profile={profile} />
             </header>
-            <section className="dashboard-header">
-                <h2>Faculty Management</h2>
-                <p>Manage faculty profiles and academic staff</p>
+            <section className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                    <h2>Faculty Management</h2>
+                    <p>Manage faculty profiles and academic staff</p>
+                </div>
+                <button
+                    className="add-student-btn"
+                    style={{
+                        background: "#a855f7",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => setShowAddModal(true)}
+                >
+                    + Add Faculty
+                </button>
             </section>
             <section className="filters">
                 <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
@@ -123,7 +95,9 @@ export default function FacultyManagement() {
                     <div className="student-card" key={fac.id} style={{ position: "relative" }}>
                         <div className="student-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <span className="initials">
-                                {fac.name.split(' ').map(n => n[0]).join('')}
+                                {typeof fac.name === "string"
+                                    ? fac.name.split(' ').map(n => n[0]).join('')
+                                    : ""}
                             </span>
                             <span className="status" style={{
                                 background: "#a855f7",
@@ -133,7 +107,6 @@ export default function FacultyManagement() {
                                 fontSize: "12px",
                                 marginLeft: "8px"
                             }}>{fac.status}</span>
-                            {/* Three-dot menu */}
                             <button
                                 className="menu-btn"
                                 style={{
@@ -149,7 +122,6 @@ export default function FacultyManagement() {
                             >
                                 &#8942;
                             </button>
-                            {/* Dropdown menu */}
                             {menuOpenId === fac.id && (
                                 <div
                                     className="card-menu"
@@ -191,7 +163,7 @@ export default function FacultyManagement() {
                         <p><i className="fas fa-envelope"></i> {fac.email}</p>
                         <p><i className="fas fa-phone"></i> {fac.phone}</p>
                         <p><i className="fas fa-calendar"></i> Joined {fac.joined}</p>
-                        <p>ID: {fac.id}</p>
+                        <p>ID: {fac.faculty_id}</p>
                         <div style={{ borderTop: "1px solid #333", margin: "10px 0" }}></div>
                         <div>
                             <span style={{ fontWeight: "bold", fontSize: "13px" }}>Specialization:</span>
@@ -240,7 +212,7 @@ export default function FacultyManagement() {
                         <p>Email: {selectedFaculty.email}</p>
                         <p>Phone: {selectedFaculty.phone}</p>
                         <p>Joined: {selectedFaculty.joined}</p>
-                        <p>ID: {selectedFaculty.id}</p>
+                        <p>ID: {selectedFaculty.faculty_id}</p>
                         <p>Specialization: {selectedFaculty.specialization}</p>
                         <p>Status: {selectedFaculty.status}</p>
                     </div>
@@ -361,6 +333,7 @@ export default function FacultyManagement() {
                             e.preventDefault();
                             const form = e.target;
                             const newFaculty = {
+                                faculty_id: form.faculty_id.value,
                                 name: form.name.value,
                                 position: form.position.value,
                                 department: form.department.value,
@@ -383,7 +356,7 @@ export default function FacultyManagement() {
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <input name="faculty_id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }} />
                             <button type="submit" style={{
                                 background: "#a855f7",

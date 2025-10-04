@@ -1,20 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-
-const sampleStudents = [
-    { id: "STU240001", name: "John Michael Smith", course: "Computer Science", year: "3rd Year", email: "john.smith@student.edu", phone: "+1 (555) 123-4567", age: 23, gpa: 3.85, department: "Computer Science", status: "ACTIVE" },
-    { id: "STU240002", name: "Sarah Elizabeth Johnson", course: "Business Administration", year: "2nd Year", email: "sarah.johnson@student.edu", phone: "+1 (555) 234-5678", age: 22, gpa: 3.92, department: "Business", status: "ACTIVE" },
-    { id: "STU240003", name: "Michael Brown", course: "Engineering", year: "4th Year", email: "michael.brown@student.edu", phone: "+1 (555) 345-6789", age: 23, gpa: 3.67, department: "Engineering", status: "ACTIVE" },
-    { id: "STU240004", name: "Emily Rose Davis", course: "Computer Science", year: "1st Year", email: "emily.davis@student.edu", phone: "+1 (555) 456-7890", age: 21, gpa: 4.00, department: "Computer Science", status: "ACTIVE" },
-    { id: "STU240005", name: "Alex Jordan Wilson", course: "Business Administration", year: "3rd Year", email: "alex.wilson@student.edu", phone: "+1 (555) 567-8901", age: 22, gpa: 3.60, department: "Business", status: "ACTIVE" },
-];
-
-function getInitialStudents() {
-    const stored = localStorage.getItem("students");
-    return stored ? JSON.parse(stored) : sampleStudents;
-}
+import axios from "axios";
+import ProfileWidget from "./ProfileWidget";
+import { getProfile } from "./MyProfile";
 
 export default function StudentManagement() {
-    const [students, setStudents] = useState(getInitialStudents());
+    const [students, setStudents] = useState([]);
     const [menuOpenId, setMenuOpenId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -23,38 +13,26 @@ export default function StudentManagement() {
     const [filter, setFilter] = useState("All Courses");
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
     const menuRef = useRef(null);
+    const profile = getProfile();
 
-    // Persist students to localStorage
+    // Fetch students from API
     useEffect(() => {
-        localStorage.setItem("students", JSON.stringify(students));
-    }, [students]);
+        axios.get("/api/students").then(res => {
+            setStudents(Array.isArray(res.data) ? res.data : []);
+        });
+    }, []);
 
-    // Close menu when clicking outside
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setMenuOpenId(null);
-            }
-        }
-        if (menuOpenId) {
-            document.addEventListener("mousedown", handleClickOutside);
-        } else {
-            document.removeEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [menuOpenId]);
-
-    // Add student handler
-    const handleAddStudent = (newStudent) => {
-        setStudents([...students, newStudent]);
+    // Add student handler (API)
+    const handleAddStudent = async (newStudent) => {
+        const res = await axios.post("/api/students", newStudent);
+        setStudents([...students, res.data]);
         setShowAddModal(false);
     };
 
-    // Delete student handler
-    const handleDeleteStudent = (id) => {
-        setStudents(students.filter(s => s.id !== id));
+    // Delete student handler (API)
+    const handleDeleteStudent = async (student_id) => {
+        await axios.delete(`/api/students/${student_id}`);
+        setStudents(students.filter(s => s.student_id !== student_id));
         setMenuOpenId(null);
         setSelectedStudent(null);
     };
@@ -66,16 +44,16 @@ export default function StudentManagement() {
         setMenuOpenId(null);
     };
 
-    const handleEditSubmit = (e) => {
+    const handleEditSubmit = async (e) => {
         e.preventDefault();
-        setStudents(students.map(s => s.id === editStudent.id ? editStudent : s));
+        const res = await axios.put(`/api/students/${editStudent.student_id}`, editStudent);
+        setStudents(students.map(s => s.student_id === editStudent.student_id ? res.data : s));
         setShowEditModal(false);
         setEditStudent(null);
     };
 
     // Filter students
     const filteredStudents = students.filter(student => {
-        // Normalize for case-insensitive comparison
         const courseMatch =
             filter === "All Courses" ||
             (student.course && student.course.toLowerCase().includes(filter.toLowerCase()));
@@ -87,19 +65,29 @@ export default function StudentManagement() {
 
     return (
         <div className="student-management-content">
-            <header className="top-bar">
-                <h1>Students</h1>
-                <input type="search" placeholder="Search students by name, email, or student ID..." />
-                <i className="fas fa-bell notification"></i>
-                <div className="user-info">
-                    <i className="fas fa-circle user-status online"></i>
-                    <span>AU Admin User... ONLINE</span>
-                </div>
-                <button className="add-student-btn" onClick={() => setShowAddModal(true)}>+ Add Student</button>
+            <header className="top-bar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "18px" }}>
+                <ProfileWidget profile={profile} />
             </header>
-            <section className="dashboard-header">
-                <h2>Student Management</h2>
-                <p>Manage student profiles and academic information</p>
+            <section className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                    <h2>Student Management</h2>
+                    <p>Manage student profiles and academic information</p>
+                </div>
+                <button
+                    className="add-student-btn"
+                    style={{
+                        background: "#a855f7",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                    onClick={() => setShowAddModal(true)}
+                >
+                    + Add Student
+                </button>
             </section>
             <section className="filters">
                 <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -117,10 +105,10 @@ export default function StudentManagement() {
             </section>
             <section className="students-grid">
                 {filteredStudents.map((student) => (
-                    <div className="student-card" key={student.id} style={{ position: "relative" }}>
+                    <div className="student-card" key={student.student_id} style={{ position: "relative" }}>
                         <div className="student-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                             <span className="initials">
-                                {student.name.split(' ').map(n => n[0]).join('')}
+                                {student.name ? student.name.split(' ').map(n => n[0]).join('') : ""}
                             </span>
                             <span className="status" style={{
                                 background: "#a855f7",
@@ -130,7 +118,6 @@ export default function StudentManagement() {
                                 fontSize: "12px",
                                 marginLeft: "8px"
                             }}>{student.status}</span>
-                            {/* Three-dot menu */}
                             <button
                                 className="menu-btn"
                                 style={{
@@ -141,13 +128,12 @@ export default function StudentManagement() {
                                     cursor: "pointer",
                                     fontSize: "22px"
                                 }}
-                                onClick={() => setMenuOpenId(student.id)}
+                                onClick={() => setMenuOpenId(student.student_id)}
                                 aria-label="Open menu"
                             >
                                 &#8942;
                             </button>
-                            {/* Dropdown menu */}
-                            {menuOpenId === student.id && (
+                            {menuOpenId === student.student_id && (
                                 <div
                                     className="card-menu"
                                     ref={menuRef}
@@ -169,17 +155,14 @@ export default function StudentManagement() {
                                     <button className="menu-item" style={menuItemStyle} onClick={() => handleEditStudent(student)}>
                                         <i className="fas fa-edit"></i> Edit
                                     </button>
-                                    <button className="menu-item" style={menuItemStyle} onClick={() => { setMenuOpenId(null); alert("Deactivate"); }}>
-                                        <i className="fas fa-ban"></i> Deactivate
-                                    </button>
-                                    <button className="menu-item" style={{ ...menuItemStyle, color: "#ef4444" }} onClick={() => handleDeleteStudent(student.id)}>
+                                    <button className="menu-item" style={{ ...menuItemStyle, color: "#ef4444" }} onClick={() => handleDeleteStudent(student.student_id)}>
                                         <i className="fas fa-trash"></i> Delete
                                     </button>
                                 </div>
                             )}
                         </div>
                         <h3>{student.name}</h3>
-                        <p>{student.id}</p>
+                        <p>{student.student_id}</p>
                         <p>{student.course} - {student.year}</p>
                         <p>{student.email}</p>
                         <p>{student.phone}</p>
@@ -223,7 +206,7 @@ export default function StudentManagement() {
                             onClick={() => setSelectedStudent(null)}
                         >×</button>
                         <h2>{selectedStudent.name}</h2>
-                        <p>ID: {selectedStudent.id}</p>
+                        <p>ID: {selectedStudent.student_id}</p>
                         <p>Course: {selectedStudent.course}</p>
                         <p>Year: {selectedStudent.year}</p>
                         <p>Email: {selectedStudent.email}</p>
@@ -353,7 +336,7 @@ export default function StudentManagement() {
                             e.preventDefault();
                             const form = e.target;
                             const newStudent = {
-                                id: "STU" + Math.floor(Math.random() * 1000000),
+                                student_id: "STU" + Math.floor(Math.random() * 1000000), // <-- FIXED
                                 name: form.name.value,
                                 course: form.course.value,
                                 year: form.year.value,

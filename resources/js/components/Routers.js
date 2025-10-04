@@ -13,6 +13,7 @@ import AddStudent from "./AddStudent";
 import FacultyManagement from './FacultyManagement';
 import Reports from "./Reports";
 import Settings from "./Settings";
+import MyProfile from "./MyProfile"; 
 
 function AppRoutes() {
     const location = useLocation();
@@ -33,7 +34,7 @@ function AppRoutes() {
                         <Route path="faculty" element={<FacultyManagement />} />
                         <Route path="reports" element={<Reports />} />
                         <Route path="settings" element={<Settings />} />
-                        <Route path="profile" element={<div>Profile Page</div>} />
+                        <Route path="profile" element={<MyProfile />} />                        
                     </Route>
                 </Routes>
             </div>

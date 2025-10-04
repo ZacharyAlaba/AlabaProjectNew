@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\FacultyController;
+use App\Http\Controllers\StudentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +22,8 @@ Route::post('/contacts', [ContactController::class, 'store']);
 Route::put('/contacts/{id}', [ContactController::class, 'update']);
 Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
 
+Route::apiResource('students', StudentController::class);
+Route::apiResource('faculty', FacultyController::class);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -47,47 +51,5 @@ Route::get('/dashboard', function () {
     } catch (\Exception $e) {
         \Log::error('Dashboard API error: ' . $e->getMessage());
         return response()->json(['error' => 'Failed to fetch dashboard data'], 500);
-    }
-});
-
-Route::get('/students', function () {
-    try {
-        return response()->json([
-            [
-                'id' => 'STU240001',
-                'name' => 'John Smith',
-                'course' => 'Computer Science',
-                'year' => '3rd Year',
-                'email' => 'john.smith@student.edu',
-                'phone' => '+1 (555) 123-4567',
-                'age' => 23,
-                'gpa' => 3.85,
-                'department' => 'Computer Science',
-            ],
-            [
-                'id' => 'STU240002',
-                'name' => 'Sarah Johnson',
-                'course' => 'Business Administration',
-                'year' => '2nd Year',
-                'email' => 'sarah.johnson@student.edu',
-                'phone' => '+1 (555) 234-5678',
-                'age' => 21,
-                'gpa' => 3.92,
-                'department' => 'Business',
-            ],
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('Students API error: ' . $e->getMessage());
-        return response()->json(['error' => 'Failed to fetch students'], 500);
-    }
-});
-
-Route::post('/students', function (Request $request) {
-    try {
-        $data = $request->json()->all();
-        return response()->json(['message' => 'Student added', 'data' => $data], 201);
-    } catch (\Exception $e) {
-        \Log::error('Add student API error: ' . $e->getMessage());
-        return response()->json(['error' => 'Failed to add student'], 500);
     }
 });

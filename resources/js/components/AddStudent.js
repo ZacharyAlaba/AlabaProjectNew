@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function AddStudent() {
     const [formData, setFormData] = useState({
         name: "",
-        id: "",
+        student_id: "",
         course: "",
         year: "",
         email: "",
@@ -12,6 +13,7 @@ export default function AddStudent() {
         age: "",
         gpa: "",
         department: "",
+        status: "ACTIVE"
     });
     const navigate = useNavigate();
 
@@ -21,17 +23,13 @@ export default function AddStudent() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const studentData = {
+            ...formData,
+            student_id: "STU" + Math.floor(Math.random() * 1000000)
+        };
         try {
-            const response = await fetch('/api/students', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
-            });
-            if (response.ok) {
-                navigate("/admin/students");
-            } else {
-                console.error('Failed to add student');
-            }
+            await axios.post('/api/students', studentData);
+            navigate("/admin/students");
         } catch (error) {
             console.error('Error adding student:', error);
         }
@@ -65,7 +63,6 @@ export default function AddStudent() {
                 <section className="add-student-form">
                     <form onSubmit={handleSubmit}>
                         <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} required />
-                        <input name="id" placeholder="Student ID" value={formData.id} onChange={handleChange} required />
                         <select name="course" value={formData.course} onChange={handleChange} required>
                             <option value="">Select Course</option>
                             <option value="Computer Science">Computer Science</option>

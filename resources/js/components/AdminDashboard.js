@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate, Link, useLocation, Outlet } from "react-router-dom";
 import { Doughnut } from 'react-chartjs-2';
 import {
@@ -8,6 +9,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import ProfileWidget from "./ProfileWidget";
+import { getProfile } from "./MyProfile";
 
 ChartJS.register(
   ArcElement,
@@ -17,61 +20,41 @@ ChartJS.register(
 );
 
 export default function AdminDashboard() {
-    const [dashboardData, setDashboardData] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [totalStudents, setTotalStudents] = useState(0);
+    const [facultyMembers, setFacultyMembers] = useState(0);
+    const [facultyDistribution, setFacultyDistribution] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
+    const profile = getProfile();
 
+    // Fetch live stats from API
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('/api/dashboard');
-                if (response.ok) {
-                    const data = await response.json();
-                    setDashboardData(data);
-                }
-            } catch (error) {
-                setDashboardData({
-                    avg_gpa: 3.5,
-                    academic_year: "2025-2026",
-                    total_students: 1200,
-                    faculty_members: 80,
-                    active_courses: 35,
-                    departments: 5,
-                    faculty_distribution: {
-                        Business: 40,
-                        "Computer Science": 40
-                    }
+        axios.get("/api/students").then(res => {
+            setTotalStudents(Array.isArray(res.data) ? res.data.length : 0);
+        });
+        axios.get("/api/faculty").then(res => {
+            if (Array.isArray(res.data)) {
+                setFacultyMembers(res.data.length);
+                // Distribution by department
+                const dist = {};
+                res.data.forEach(f => {
+                    dist[f.department] = (dist[f.department] || 0) + 1;
                 });
+                setFacultyDistribution(dist);
+            } else {
+                setFacultyMembers(0);
+                setFacultyDistribution({});
             }
-        };
-        fetchData();
+        });
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            const response = await fetch('/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            if (response.ok) {
-                navigate('/login');
-            }
-        } catch (error) {
-            console.error('Logout failed:', error);
-        }
-    };
-
-    if (!dashboardData) {
-        return <div className="loading">Loading...</div>;
-    }
-
     const doughnutChartData = {
-        labels: Object.keys(dashboardData.faculty_distribution),
+        labels: Object.keys(facultyDistribution),
         datasets: [
             {
-                data: Object.values(dashboardData.faculty_distribution),
-                backgroundColor: ['#22c55e', '#a855f7'],
+                data: Object.values(facultyDistribution),
+                backgroundColor: ['#22c55e', '#a855f7', '#3b82f6', '#fbbf24', '#ef4444'],
                 hoverOffset: 4,
             },
         ],
@@ -85,6 +68,16 @@ export default function AdminDashboard() {
         { label: "Settings", icon: "fas fa-cog", path: "/admin/settings" },
         { label: "My Profile", icon: "fas fa-user", path: "/admin/profile" },
     ];
+
+    const handleLogout = async () => {
+        localStorage.clear();
+        navigate("/");
+    };
+
+    const avg_gpa = 0; // Replace with actual calculation if needed
+    const academic_year = "2025-2026"; // Replace with dynamic value if needed
+    const activeCourses = 3; // Replace with actual count if needed
+    const departments = Object.keys(facultyDistribution).length;
 
     return (
         <div className="dashboard-container">
@@ -154,21 +147,16 @@ export default function AdminDashboard() {
                 {/* Only show dashboard content on /admin */}
                 {location.pathname === "/admin" && (
                     <>
-                        <header className="top-bar">
+                        <header className="top-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <h1>Dashboard</h1>
-                            <input type="search" placeholder="Search..." />
-                            <i className="fas fa-bell notification"></i>
-                            <div className="user-info">
-                                <i className="fas fa-circle user-status online"></i>
-                                <span>AU Admin User... ONLINE</span>
-                            </div>
+                            <ProfileWidget profile={profile} />
                         </header>
                         <section className="dashboard-header">
                             <h2 style={{ color: "#a855f7" }}>University Dashboard</h2>
                             <p>Comprehensive overview of your educational institution</p>
                             <div className="gpa-year">
-                                <span>{dashboardData.avg_gpa} Avg GPA</span>
-                                <span>ACADEMIC YEAR {dashboardData.academic_year}</span>
+                                <span>{avg_gpa} Avg GPA</span>
+                                <span>ACADEMIC YEAR {academic_year}</span>
                             </div>
                         </section>
                         <section className="stats-cards" style={{
@@ -190,7 +178,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-user-graduate card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Total Students</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{dashboardData.total_students}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalStudents}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+100.0% active</span>
                             </div>
                             <div className="card faculty-card" style={{
@@ -206,7 +194,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-chalkboard-teacher card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Faculty Members</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{dashboardData.faculty_members}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{facultyMembers}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+2 active members</span>
                             </div>
                             <div className="card courses-card" style={{
@@ -222,7 +210,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-book card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Active Courses</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{dashboardData.active_courses}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeCourses}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+3 total programs</span>
                             </div>
                             <div className="card departments-card" style={{
@@ -238,7 +226,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-building card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Departments</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{dashboardData.departments}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{departments}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+3 total departments</span>
                             </div>
                         </section>
@@ -281,12 +269,11 @@ export default function AdminDashboard() {
                                     />
                                 </div>
                                 <div className="chart-legend" style={{ marginTop: "12px" }}>
-                                    <span className="legend-item business" style={{ color: "#22c55e" }}>
-                                        <i className="fas fa-circle"></i> Business
-                                    </span>
-                                    <span className="legend-item cs" style={{ color: "#a855f7", marginLeft: "16px" }}>
-                                        <i className="fas fa-circle"></i> Computer Science
-                                    </span>
+                                    {Object.keys(facultyDistribution).map((dept, idx) => (
+                                        <span key={dept} className="legend-item" style={{ color: doughnutChartData.datasets[0].backgroundColor[idx], marginLeft: idx > 0 ? "16px" : "0" }}>
+                                            <i className="fas fa-circle"></i> {dept}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </section>
