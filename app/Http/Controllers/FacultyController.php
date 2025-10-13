@@ -36,7 +36,25 @@ class FacultyController extends Controller
      */
     public function store(Request $request)
     {
-        $faculty = Faculty::create($request->all());
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'position' => 'required|string',
+            'department' => 'required|string',
+            'email' => 'required|email',
+            'phone' => 'required|string',
+            'joined' => 'required|date',
+            'specialization' => 'required|string',
+            'status' => 'required|string',
+        ]);
+
+        // Generate unique faculty_id
+        do {
+            $faculty_id = 'FAC' . mt_rand(100000, 999999);
+        } while (\App\Models\Faculty::where('faculty_id', $faculty_id)->exists());
+
+        $validated['faculty_id'] = $faculty_id;
+
+        $faculty = Faculty::create($validated);
         return response()->json($faculty, 201);
     }
 

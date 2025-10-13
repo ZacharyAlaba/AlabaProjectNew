@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, Link, useLocation, Outlet } from "react-router-dom";
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Bar, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   ArcElement,
   Title,
   Tooltip,
   Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
 } from 'chart.js';
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
@@ -16,14 +21,39 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement
 );
+
+// Utility functions for live counts
+function getActiveCourses() {
+    const stored = localStorage.getItem("courses");
+    if (stored) {
+        return JSON.parse(stored).filter(c => c.status === "Active").length;
+    }
+    return 0;
+}
+function getActiveDepartments() {
+    const stored = localStorage.getItem("departments");
+    if (stored) {
+        return JSON.parse(stored).filter(d => d.status === "Active").length;
+    }
+    return 0;
+}
 
 export default function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [totalStudents, setTotalStudents] = useState(0);
-    const [facultyMembers, setFacultyMembers] = useState(0);
+    const [students, setStudents] = useState([]);
+    const [faculty, setFaculty] = useState([]);
     const [facultyDistribution, setFacultyDistribution] = useState({});
+    const [studentEnrollment, setStudentEnrollment] = useState({ labels: [], datasets: [] });
+    const [growthTrends, setGrowthTrends] = useState({ labels: [], datasets: [] });
+    const [activeCourses, setActiveCourses] = useState(getActiveCourses());
+    const [activeDepartments, setActiveDepartments] = useState(getActiveDepartments());
     const navigate = useNavigate();
     const location = useLocation();
     const profile = getProfile();
@@ -31,23 +61,117 @@ export default function AdminDashboard() {
     // Fetch live stats from API
     useEffect(() => {
         axios.get("/api/students").then(res => {
-            setTotalStudents(Array.isArray(res.data) ? res.data.length : 0);
+            if (Array.isArray(res.data)) {
+                setStudents(res.data);
+            } else {
+                setStudents([]);
+            }
         });
         axios.get("/api/faculty").then(res => {
             if (Array.isArray(res.data)) {
-                setFacultyMembers(res.data.length);
-                // Distribution by department
-                const dist = {};
-                res.data.forEach(f => {
-                    dist[f.department] = (dist[f.department] || 0) + 1;
-                });
-                setFacultyDistribution(dist);
+                setFaculty(res.data);
             } else {
-                setFacultyMembers(0);
-                setFacultyDistribution({});
+                setFaculty([]);
             }
         });
     }, []);
+
+    // Live update for courses/departments
+    useEffect(() => {
+        function updateCounts() {
+            setActiveCourses(getActiveCourses());
+            setActiveDepartments(getActiveDepartments());
+        }
+        window.addEventListener("storage", updateCounts);
+        updateCounts();
+        return () => window.removeEventListener("storage", updateCounts);
+    }, []);
+
+    // Calculate faculty distribution by department
+    useEffect(() => {
+        const dist = {};
+        faculty.forEach(f => {
+            const dept = f.department || "Unknown";
+            dist[dept] = (dist[dept] || 0) + 1;
+        });
+        setFacultyDistribution(dist);
+    }, [faculty]);
+
+    // Calculate student enrollment by course
+    useEffect(() => {
+        const enroll = {};
+        students.forEach(s => {
+            const course = s.course || "Unknown";
+            enroll[course] = (enroll[course] || 0) + 1;
+        });
+        setStudentEnrollment({
+            labels: Object.keys(enroll),
+            datasets: [
+                {
+                    label: "Students",
+                    data: Object.values(enroll),
+                    backgroundColor: ["#a855f7", "#22c55e", "#3b82f6", "#fbbf24", "#ef4444"]
+                }
+            ]
+        });
+    }, [students]);
+
+    // Generate Growth Trends (students and faculty count per month)
+    useEffect(() => {
+        // For demo: last 6 months, count how many joined in each month
+        const months = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push(`${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`);
+        }
+
+        const studentCounts = months.map((label, idx) => {
+            const [month, year] = label.split(" ");
+            return students.filter(s => {
+                if (!s.created_at) return false;
+                const date = new Date(s.created_at);
+                return (
+                    date.getMonth() === new Date(`${month} 1, ${year}`).getMonth() &&
+                    date.getFullYear() === parseInt(year)
+                );
+            }).length;
+        });
+
+        const facultyCounts = months.map((label, idx) => {
+            const [month, year] = label.split(" ");
+            return faculty.filter(f => {
+                if (!f.created_at) return false;
+                const date = new Date(f.created_at);
+                return (
+                    date.getMonth() === new Date(`${month} 1, ${year}`).getMonth() &&
+                    date.getFullYear() === parseInt(year)
+                );
+            }).length;
+        });
+
+        setGrowthTrends({
+            labels: months,
+            datasets: [
+                {
+                    label: "Students",
+                    data: studentCounts,
+                    borderColor: "#a855f7",
+                    backgroundColor: "rgba(168,85,247,0.2)",
+                    tension: 0.4,
+                    fill: true,
+                },
+                {
+                    label: "Faculty",
+                    data: facultyCounts,
+                    borderColor: "#22c55e",
+                    backgroundColor: "rgba(34,197,94,0.2)",
+                    tension: 0.4,
+                    fill: true,
+                }
+            ]
+        });
+    }, [students, faculty]);
 
     const doughnutChartData = {
         labels: Object.keys(facultyDistribution),
@@ -59,6 +183,45 @@ export default function AdminDashboard() {
             },
         ],
     };
+
+    // Generate live recent activity from students and faculty
+    const recentActivity = [
+        ...students
+            .slice()
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 3)
+            .map(s => ({
+                icon: "fas fa-user-graduate",
+                color: "#22c55e",
+                title: "New student registration completed",
+                desc: `${s.name} joined ${s.course || "a program"}`,
+                time: s.created_at ? timeAgo(new Date(s.created_at)) : "Just now"
+            })),
+        ...faculty
+            .slice()
+            .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+            .slice(0, 2)
+            .map(f => ({
+                icon: "fas fa-user-edit",
+                color: "#38bdf8",
+                title: "Faculty profile updated",
+                desc: `${f.name} updated their specialization`,
+                time: f.updated_at ? timeAgo(new Date(f.updated_at)) : "Just now"
+            }))
+    ].slice(0, 5); // Show only the 5 most recent activities
+
+    // Helper function to format "time ago"
+    function timeAgo(date) {
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        if (seconds < 60) return "Just now";
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+        const days = Math.floor(hours / 24);
+        return `${days} day${days > 1 ? "s" : ""} ago`;
+    }
 
     const menuItems = [
         { label: "Dashboard", icon: "fas fa-th-large", path: "/admin" },
@@ -76,8 +239,6 @@ export default function AdminDashboard() {
 
     const avg_gpa = 0; // Replace with actual calculation if needed
     const academic_year = "2025-2026"; // Replace with dynamic value if needed
-    const activeCourses = 3; // Replace with actual count if needed
-    const departments = Object.keys(facultyDistribution).length;
 
     return (
         <div className="dashboard-container">
@@ -147,18 +308,22 @@ export default function AdminDashboard() {
                 {/* Only show dashboard content on /admin */}
                 {location.pathname === "/admin" && (
                     <>
+                        {/* Header */}
                         <header className="top-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <h1>Dashboard</h1>
+                            <div>
+                                <h1 style={{ fontSize: "2rem", color: "#a855f7", marginBottom: 0 }}>University Dashboard</h1>
+                                <p style={{ color: "#9ca3af", marginTop: 4 }}>Comprehensive overview of your educational institution</p>
+                            </div>
                             <ProfileWidget profile={profile} />
                         </header>
-                        <section className="dashboard-header">
-                            <h2 style={{ color: "#a855f7" }}>University Dashboard</h2>
-                            <p>Comprehensive overview of your educational institution</p>
-                            <div className="gpa-year">
-                                <span>{avg_gpa} Avg GPA</span>
-                                <span>ACADEMIC YEAR {academic_year}</span>
-                            </div>
-                        </section>
+                        {/* GPA and Academic Year */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "24px", marginBottom: "24px" }}>
+                            <span style={{ fontWeight: "bold", fontSize: "1.2rem", color: "#22c55e" }}>{avg_gpa} Avg GPA</span>
+                            <span style={{ background: "#23234a", color: "#fff", borderRadius: "8px", padding: "4px 16px", fontWeight: "bold" }}>
+                                ACADEMIC YEAR {academic_year}
+                            </span>
+                        </div>
+                        {/* Stats Cards */}
                         <section className="stats-cards" style={{
                             display: "flex",
                             gap: "24px",
@@ -178,7 +343,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-user-graduate card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Total Students</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalStudents}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{students.length}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+100.0% active</span>
                             </div>
                             <div className="card faculty-card" style={{
@@ -194,7 +359,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-chalkboard-teacher card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Faculty Members</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{facultyMembers}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{faculty.length}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+2 active members</span>
                             </div>
                             <div className="card courses-card" style={{
@@ -211,7 +376,7 @@ export default function AdminDashboard() {
                                 <i className="fas fa-book card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Active Courses</h3>
                                 <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeCourses}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+3 total programs</span>
+                                <span className="growth" style={{ color: "#22c55e" }}>+{activeCourses} total programs</span>
                             </div>
                             <div className="card departments-card" style={{
                                 background: "#181826",
@@ -226,15 +391,37 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-building card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Departments</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{departments}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+3 total departments</span>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeDepartments}</p>
+                                <span className="growth" style={{ color: "#22c55e" }}>+{activeDepartments} total departments</span>
                             </div>
                         </section>
-                        <section className="charts-section" style={{
-                            display: "flex",
-                            gap: "24px",
-                            justifyContent: "center"
-                        }}>
+                        {/* Growth Trends & Faculty Distribution */}
+                        <section style={{ display: "flex", gap: "24px", marginBottom: "32px" }}>
+                            <div style={{
+                                flex: 1,
+                                background: "#181826",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                marginRight: "12px"
+                            }}>
+                                <h3 style={{ color: "#fff", marginBottom: "12px" }}>Growth Trends</h3>
+                                <div style={{ width: "100%", height: "400px" }}>
+                                    <Line
+                                        data={growthTrends}
+                                        options={{
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                legend: { labels: { color: "#fff" } }
+                                            },
+                                            scales: {
+                                                x: { ticks: { color: "#fff" } },
+                                                y: { ticks: { color: "#fff" } }
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
                             <div className="chart distribution-chart" style={{
                                 width: "320px",
                                 background: "#181826",
@@ -274,6 +461,71 @@ export default function AdminDashboard() {
                                             <i className="fas fa-circle"></i> {dept}
                                         </span>
                                     ))}
+                                </div>
+                            </div>
+                        </section>
+                        {/* Recent Activity & Student Enrollment */}
+                        <section style={{ display: "flex", gap: "24px" }}>
+                            {/* Recent Activity */}
+                            <div style={{
+                                flex: 1,
+                                background: "#181826",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                marginRight: "12px"
+                            }}>
+                                <h3 style={{ color: "#fff", marginBottom: "16px" }}>Recent Activity</h3>
+                                <div>
+                                    {recentActivity.map((item, idx) => (
+                                        <div key={idx} style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            background: "#23234a",
+                                            borderRadius: "10px",
+                                            padding: "16px",
+                                            marginBottom: "12px"
+                                        }}>
+                                            <i className={item.icon} style={{
+                                                fontSize: "24px",
+                                                color: item.color,
+                                                marginRight: "16px"
+                                            }}></i>
+                                            <div>
+                                                <div style={{ fontWeight: "bold", color: "#fff" }}>{item.title}</div>
+                                                <div style={{ color: "#9ca3af", fontSize: "14px" }}>{item.desc}</div>
+                                            </div>
+                                            <div style={{ marginLeft: "auto", color: "#9ca3af", fontSize: "13px" }}>{item.time}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Student Enrollment */}
+                            <div style={{
+                                flex: 1,
+                                background: "#181826",
+                                borderRadius: "16px",
+                                padding: "24px"
+                            }}>
+                                <h3 style={{ color: "#fff", marginBottom: "16px" }}>Student Enrollment</h3>
+                                <p style={{ color: "#9ca3af", marginBottom: "12px" }}>Distribution of students across different courses</p>
+                                <div style={{ width: "100%", height: "220px" }}>
+                                    <Bar
+                                        data={studentEnrollment}
+                                        options={{
+                                            responsive: true,
+                                            plugins: {
+                                                legend: { display: false },
+                                            },
+                                            scales: {
+                                                x: {
+                                                    ticks: { color: "#fff" }
+                                                },
+                                                y: {
+                                                    ticks: { color: "#fff" }
+                                                }
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </section>

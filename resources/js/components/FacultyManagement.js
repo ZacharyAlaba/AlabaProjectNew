@@ -1,37 +1,71 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
+
+function getDepartments() {
+    const stored = localStorage.getItem("departments");
+    if (stored) {
+        return JSON.parse(stored)
+            .filter(dep => dep.status === "Active")
+            .map(dep => dep.name);
+    }
+    return [];
+}
 
 export default function FacultyManagement() {
     const [faculty, setFaculty] = useState([]);
     const [menuOpenId, setMenuOpenId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [departments, setDepartments] = useState(getDepartments());
+    const [formData, setFormData] = useState({
+        name: "",
+        position: "",
+        department: "",
+        email: "",
+        phone: "",
+        joined: "",
+        specialization: "",
+        status: "ACTIVE"
+    });
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedFaculty, setSelectedFaculty] = useState(null);
     const [editFaculty, setEditFaculty] = useState(null);
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
-    const menuRef = useRef(null);
     const profile = getProfile();
+    const menuRef = useRef(null);
 
-    // Fetch faculty from API
     useEffect(() => {
         axios.get("/api/faculty").then(res => {
-            setFaculty(Array.isArray(res.data) ? res.data : []);
+            const data = Array.isArray(res.data) ? res.data : [];
+            setFaculty(data);
+            localStorage.setItem("faculty", JSON.stringify(data)); // Sync to localStorage
         });
     }, []);
+
+    useEffect(() => {
+        setDepartments(getDepartments());
+    }, []);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
     // Add faculty handler (API)
     const handleAddFaculty = async (newFaculty) => {
         const res = await axios.post("/api/faculty", newFaculty);
-        setFaculty([...faculty, res.data]);
+        const updated = [...faculty, res.data];
+        setFaculty(updated);
+        localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
         setShowAddModal(false);
     };
 
     // Delete faculty handler (API)
     const handleDeleteFaculty = async (id) => {
         await axios.delete(`/api/faculty/${id}`);
-        setFaculty(faculty.filter(f => f.id !== id));
+        const updated = faculty.filter(f => f.id !== id);
+        setFaculty(updated);
+        localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
         setMenuOpenId(null);
         setSelectedFaculty(null);
     };
@@ -46,7 +80,9 @@ export default function FacultyManagement() {
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         const res = await axios.put(`/api/faculty/${editFaculty.id}`, editFaculty);
-        setFaculty(faculty.map(f => f.id === editFaculty.id ? res.data : f));
+        const updated = faculty.map(f => f.id === editFaculty.id ? res.data : f);
+        setFaculty(updated);
+        localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
         setShowEditModal(false);
         setEditFaculty(null);
     };
@@ -86,8 +122,9 @@ export default function FacultyManagement() {
             <section className="filters">
                 <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
                     <option value="All Departments">All Departments</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Business">Business</option>
+                    {departments.map(dep => (
+                        <option key={dep} value={dep}>{dep}</option>
+                    ))}
                 </select>
             </section>
             <section className="students-grid">
@@ -263,8 +300,9 @@ export default function FacultyManagement() {
                                 value={editFaculty.department}
                                 onChange={e => setEditFaculty({ ...editFaculty, department: e.target.value })}>
                                 <option value="">Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Business">Business</option>
+                                {departments.map(dep => (
+                                    <option key={dep} value={dep}>{dep}</option>
+                                ))}
                             </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.email}
@@ -333,7 +371,6 @@ export default function FacultyManagement() {
                             e.preventDefault();
                             const form = e.target;
                             const newFaculty = {
-                                faculty_id: form.faculty_id.value,
                                 name: form.name.value,
                                 position: form.position.value,
                                 department: form.department.value,
@@ -349,13 +386,13 @@ export default function FacultyManagement() {
                             <input name="position" placeholder="Position" required style={{ width: "100%", marginBottom: "8px" }} />
                             <select name="department" required style={{ width: "100%", marginBottom: "8px" }}>
                                 <option value="">Select Department</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Business">Business</option>
+                                {departments.map(dep => (
+                                    <option key={dep} value={dep}>{dep}</option>
+                                ))}
                             </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="faculty_id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }} />
                             <button type="submit" style={{
                                 background: "#a855f7",

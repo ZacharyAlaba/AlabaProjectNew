@@ -27,8 +27,12 @@ export default function AddStudent() {
             ...formData,
             student_id: "STU" + Math.floor(Math.random() * 1000000)
         };
+        const newStudent = {
+            ...studentData,
+            academicYear: formData.academicYear,
+        };
         try {
-            await axios.post('/api/students', studentData);
+            await axios.post('/api/students', newStudent);
             navigate("/admin/students");
         } catch (error) {
             console.error('Error adding student:', error);
@@ -75,6 +79,18 @@ export default function AddStudent() {
                             <option value="2nd Year">2nd Year</option>
                             <option value="3rd Year">3rd Year</option>
                             <option value="4th Year">4th Year</option>
+                        </select>
+                        <select
+                            name="academicYear"
+                            value={formData.academicYear || ""}
+                            onChange={handleChange}
+                            required
+                            style={{ width: "100%", marginBottom: "8px" }}
+                        >
+                            <option value="">Select Academic Year</option>
+                            {(localStorage.getItem("academicYears") ? JSON.parse(localStorage.getItem("academicYears")) : []).map(y => (
+                                <option key={y.name} value={y.name}>{y.name}</option>
+                            ))}
                         </select>
                         <input name="email" type="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
                         <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} required />

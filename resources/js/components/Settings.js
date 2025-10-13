@@ -1,130 +1,44 @@
 import React, { useState } from "react";
 import ProfileWidget from "./ProfileWidget";
-import { getProfile } from "./MyProfile"; // Make sure getProfile is exported
+import { getProfile } from "./MyProfile";
 
-const initialCourses = [
-    {
-        name: "Computer Science",
-        code: "CS",
-        department: "Engineering",
-        credits: 120,
-        duration: 4,
-        status: "Active"
-    },
-    {
-        name: "Business Administration",
-        code: "BA",
-        department: "Business",
-        credits: 90,
-        duration: 3,
-        status: "Active"
-    },
-    {
-        name: "Mechanical Engineering",
-        code: "ME",
-        department: "Engineering",
-        credits: 128,
-        duration: 4,
-        status: "Active"
-    },
-    {
-        name: "Medicine",
-        code: "MD",
-        department: "Medicine",
-        credits: 180,
-        duration: 6,
-        status: "Active"
-    },
-    {
-        name: "Elementary Education",
-        code: "ED",
-        department: "Education",
-        credits: 96,
-        duration: 4,
-        status: "Archived"
-    }
+// DEPARTMENTS from your image
+const initialDepartments = [
+    { name: "Engineering and Technology", established: 1995, head: "Dr. Robert Smith", faculty: 24, students: 567, status: "Active" },
+    { name: "Nursing", established: 1997, head: "Dr. Jane Doe", faculty: 18, students: 400, status: "Active" },
+    { name: "Accountancy", established: 1998, head: "Prof. John Smith", faculty: 15, students: 350, status: "Active" },
+    { name: "Business Administration", established: 1999, head: "Prof. Sarah Johnson", faculty: 20, students: 500, status: "Active" },
+    { name: "Tourism and Hospitality Management", established: 2000, head: "Dr. Emily Brown", faculty: 12, students: 300, status: "Active" },
+    { name: "Arts and Sciences", established: 2001, head: "Prof. David Wilson", faculty: 14, students: 320, status: "Active" },
+    { name: "Computer Studies", established: 2002, head: "Dr. Alan Turing", faculty: 22, students: 600, status: "Active" },
+    { name: "Criminal Justice Education", established: 2003, head: "Dr. Michael Chen", faculty: 10, students: 200, status: "Active" },
+    { name: "Teacher Education", established: 2004, head: "Dr. Emily Rodriguez", faculty: 16, students: 280, status: "Active" }
 ];
 
-const initialDepartments = [
-    {
-        name: "Engineering",
-        established: 1995,
-        head: "Dr. Robert Smith",
-        faculty: 24,
-        students: 567,
-        status: "Active"
-    },
-    {
-        name: "Business",
-        established: 1998,
-        head: "Prof. Sarah Johnson",
-        faculty: 18,
-        students: 423,
-        status: "Active"
-    },
-    {
-        name: "Medicine",
-        established: 1992,
-        head: "Dr. Michael Chen",
-        faculty: 32,
-        students: 234,
-        status: "Active"
-    },
-    {
-        name: "Education",
-        established: 2001,
-        head: "Dr. Emily Rodriguez",
-        faculty: 15,
-        students: 189,
-        status: "Active"
-    },
-    {
-        name: "Arts & Sciences",
-        established: 2005,
-        head: "Prof. David Wilson",
-        faculty: 12,
-        students: 156,
-        status: "Archived"
-    }
+// Example initial courses (link to departments above)
+const initialCourses = [
+    { name: "BS Computer Science", code: "BSCS", department: "Computer Studies", credits: 120, duration: 4, status: "Active" },
+    { name: "BS Accountancy", code: "BSA", department: "Accountancy", credits: 120, duration: 4, status: "Active" },
+    { name: "BS Nursing", code: "BSN", department: "Nursing", credits: 120, duration: 4, status: "Active" },
+    { name: "BS Business Administration", code: "BSBA", department: "Business Administration", credits: 120, duration: 4, status: "Active" },
+    { name: "BS Tourism Management", code: "BSTM", department: "Tourism and Hospitality Management", credits: 120, duration: 4, status: "Active" }
 ];
 
 const initialAcademicYears = [
-    {
-        name: "2024-2025",
-        status: "Current",
-        start: "2024-09-01",
-        end: "2025-06-30"
-    },
-    {
-        name: "2025-2026",
-        status: "Planned",
-        start: "2025-09-01",
-        end: "2026-06-30"
-    },
-    {
-        name: "2023-2024",
-        status: "Completed",
-        start: "2023-09-01",
-        end: "2024-06-30"
-    },
-    {
-        name: "2022-2023",
-        status: "Completed",
-        start: "2022-09-01",
-        end: "2023-06-30"
-    }
+    { name: "2024-2025", status: "Current", start: "2024-09-01", end: "2025-06-30" },
+    { name: "2025-2026", status: "Planned", start: "2025-09-01", end: "2026-06-30" },
+    { name: "2023-2024", status: "Completed", start: "2023-09-01", end: "2024-06-30" },
+    { name: "2022-2023", status: "Completed", start: "2022-09-01", end: "2023-06-30" }
 ];
-
-function getInitialCourses() {
-    const stored = localStorage.getItem("courses");
-    return stored ? JSON.parse(stored) : initialCourses;
-}
 
 function getInitialDepartments() {
     const stored = localStorage.getItem("departments");
     return stored ? JSON.parse(stored) : initialDepartments;
 }
-
+function getInitialCourses() {
+    const stored = localStorage.getItem("courses");
+    return stored ? JSON.parse(stored) : initialCourses;
+}
 function getInitialAcademicYears() {
     const stored = localStorage.getItem("academicYears");
     return stored ? JSON.parse(stored) : initialAcademicYears;
@@ -132,9 +46,11 @@ function getInitialAcademicYears() {
 
 export default function Settings() {
     const [tab, setTab] = useState("Courses");
-    const [courses, setCourses] = useState(getInitialCourses());
     const [departments, setDepartments] = useState(getInitialDepartments());
+    const [courses, setCourses] = useState(getInitialCourses());
     const [academicYears, setAcademicYears] = useState(getInitialAcademicYears());
+
+    // Modal states
     const [showAddCourseModal, setShowAddCourseModal] = useState(false);
     const [showEditCourseModal, setShowEditCourseModal] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null);
@@ -147,39 +63,75 @@ export default function Settings() {
     const [showEditYearModal, setShowEditYearModal] = useState(false);
     const [selectedYear, setSelectedYear] = useState(null);
 
-    const [menuOpen, setMenuOpen] = useState({}); // Track which card's menu is open
+    const [menuOpen, setMenuOpen] = useState({});
 
-    // Persist courses and departments to localStorage
-    React.useEffect(() => {
-        localStorage.setItem("courses", JSON.stringify(courses));
-    }, [courses]);
-
+    // Persist to localStorage
     React.useEffect(() => {
         localStorage.setItem("departments", JSON.stringify(departments));
     }, [departments]);
-
+    React.useEffect(() => {
+        localStorage.setItem("courses", JSON.stringify(courses));
+    }, [courses]);
     React.useEffect(() => {
         localStorage.setItem("academicYears", JSON.stringify(academicYears));
     }, [academicYears]);
 
+    // Archive/Activate handlers
+    const handleArchiveCourse = (code) => {
+        setCourses(courses.map(c => c.code === code ? { ...c, status: "Archived" } : c));
+    };
+    const handleActivateCourse = (code) => {
+        setCourses(courses.map(c => c.code === code ? { ...c, status: "Active" } : c));
+    };
+    const handleArchiveDepartment = (name) => {
+        setDepartments(departments.map(d => d.name === name ? { ...d, status: "Archived" } : d));
+    };
+    const handleActivateDepartment = (name) => {
+        setDepartments(departments.map(d => d.name === name ? { ...d, status: "Active" } : d));
+    };
+    const handleArchiveYear = (name) => {
+        setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Archived" } : y));
+    };
+    const handleActivateYear = (name) => {
+        setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Planned" } : y));
+    };
+
+    // Add/Edit handlers
     const handleAddCourse = (course) => {
         setCourses([...courses, course]);
         setShowAddCourseModal(false);
     };
-
     const handleEditCourse = (course) => {
         setCourses(courses.map(c => c.code === course.code ? course : c));
         setSelectedCourse(null);
         setShowEditCourseModal(false);
     };
-
-    const handleArchiveCourse = (code) => {
-        setCourses(courses.map(c => c.code === code ? { ...c, status: "Archived" } : c));
+    const handleAddDepartment = (dep) => {
+        setDepartments([...departments, dep]);
+        setShowAddDepartmentModal(false);
+    };
+    const handleEditDepartment = (dep) => {
+        setDepartments(departments.map(d => d.name === dep.name ? dep : d));
+        setSelectedDepartment(null);
+        setShowEditDepartmentModal(false);
+    };
+    const handleAddYear = (year) => {
+        setAcademicYears([...academicYears, year]);
+        setShowAddYearModal(false);
+    };
+    const handleEditYear = (year) => {
+        setAcademicYears(academicYears.map(y => y.name === year.name ? year : y));
+        setSelectedYear(null);
+        setShowEditYearModal(false);
     };
 
-    const handleActivateCourse = (code) => {
-        setCourses(courses.map(c => c.code === code ? { ...c, status: "Active" } : c));
-    };
+    // Split active/archived
+    const activeDepartments = departments.filter(d => d.status !== "Archived");
+    const archivedDepartments = departments.filter(d => d.status === "Archived");
+    const activeCourses = courses.filter(c => c.status !== "Archived");
+    const archivedCourses = courses.filter(c => c.status === "Archived");
+    const activeYears = academicYears.filter(y => y.status !== "Archived");
+    const archivedYears = academicYears.filter(y => y.status === "Archived");
 
     const profile = getProfile();
 
@@ -191,7 +143,7 @@ export default function Settings() {
             <h2 style={{ color: "#a855f7" }}>System Settings</h2>
             <p>Manage courses, departments, and academic years</p>
             <div style={{ display: "flex", gap: "12px", margin: "24px 0" }}>
-                {["Courses", "Departments", "Academic Years"].map(t => (
+                {["Courses", "Departments", "Academic Years", "Archive"].map(t => (
                     <button
                         key={t}
                         onClick={() => setTab(t)}
@@ -207,6 +159,7 @@ export default function Settings() {
                     >{t}</button>
                 ))}
             </div>
+            {/* Courses */}
             {tab === "Courses" && (
                 <>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -223,140 +176,119 @@ export default function Settings() {
                             onClick={() => setShowAddCourseModal(true)}
                         >+ Add Course</button>
                     </div>
-                    <div
-    style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-        gap: "32px",
-        marginTop: "24px"
-    }}
->
-    {courses.map(course => (
-        <div key={course.code} style={{
-            background: "#181826",
-            borderRadius: "16px",
-            padding: "24px",
-            minWidth: "320px",
-            color: "#fff",
-            position: "relative",
-            flex: "1 1 320px"
-        }}>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-                <i className="fas fa-book" style={{
-                    fontSize: "32px",
-                    color: "#3b82f6",
-                    marginRight: "12px"
-                }}></i>
-                <div>
-                    <div style={{ fontWeight: "bold", fontSize: "18px" }}>{course.name}</div>
-                    <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Code: {course.code}</div>
-                </div>
-                <span style={{
-                    marginLeft: "auto",
-                    background: course.status === "Active" ? "#22c55e" : "#71717a",
-                    color: "#fff",
-                    borderRadius: "8px",
-                    padding: "2px 12px",
-                    fontSize: "13px"
-                }}>{course.status}</span>
-            </div>
-            <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
-            <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
-            <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
-            <div style={{ position: "relative" }}>
-                <button
-                    style={{
-                        position: "absolute",
-                        top: "18px",
-                        right: "18px",
-                        background: "none",
-                        border: "none",
-                        color: "#fff",
-                        fontSize: "22px",
-                        cursor: "pointer"
-                    }}
-                    onClick={() => setMenuOpen({ ...menuOpen, [course.code]: !menuOpen[course.code] })}
-                    title="Menu"
-                >&#8942;</button>
-                {menuOpen[course.code] && (
                     <div style={{
-                        position: "absolute",
-                        top: "40px",
-                        right: "18px",
-                        background: "#23234a",
-                        borderRadius: "10px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                        zIndex: 10,
-                        minWidth: "140px",
-                        padding: "8px 0"
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                        gap: "32px",
+                        marginTop: "24px"
                     }}>
-                        <button style={menuItemStyle} onClick={() => {
-                            setSelectedCourse(course);
-                            setShowEditCourseModal(true);
-                            setMenuOpen({});
-                        }}>
-                            <i className="fas fa-edit"></i> Edit
-                        </button>
-                        <button style={menuItemStyle} onClick={() => {
-                            handleArchiveCourse(course.code);
-                            setMenuOpen({});
-                        }}>
-                            <i className="fas fa-box-archive"></i> Archive
-                        </button>
+                        {activeCourses.map(course => (
+                            <div key={course.code} style={{
+                                background: "#181826",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                minWidth: "320px",
+                                color: "#fff",
+                                position: "relative",
+                                flex: "1 1 320px"
+                            }}>
+                                <div style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+                                    <i className="fas fa-book" style={{
+                                        fontSize: "32px",
+                                        color: "#3b82f6",
+                                        marginRight: "12px"
+                                    }}></i>
+                                    <div>
+                                        <div style={{ fontWeight: "bold", fontSize: "18px" }}>{course.name}</div>
+                                        <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Code: {course.code}</div>
+                                    </div>
+                                    <span style={{
+                                        marginLeft: "auto",
+                                        background: course.status === "Active" ? "#22c55e" : "#71717a",
+                                        color: "#fff",
+                                        borderRadius: "8px",
+                                        padding: "2px 12px",
+                                        fontSize: "13px"
+                                    }}>{course.status}</span>
+                                </div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
+                                <div style={{ position: "relative" }}>
+                                    <button
+                                        style={{
+                                            position: "absolute",
+                                            top: "18px",
+                                            right: "18px",
+                                            background: "none",
+                                            border: "none",
+                                            color: "#fff",
+                                            fontSize: "22px",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => setMenuOpen({ ...menuOpen, [course.code]: !menuOpen[course.code] })}
+                                        title="Menu"
+                                    >&#8942;</button>
+                                    {menuOpen[course.code] && (
+                                        <div style={{
+                                            position: "absolute",
+                                            top: "40px",
+                                            right: "18px",
+                                            background: "#23234a",
+                                            borderRadius: "10px",
+                                            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                                            zIndex: 10,
+                                            minWidth: "140px",
+                                            padding: "8px 0"
+                                        }}>
+                                            <button style={menuItemStyle} onClick={() => {
+                                                setSelectedCourse(course);
+                                                setShowEditCourseModal(true);
+                                                setMenuOpen({});
+                                            }}>
+                                                <i className="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button style={menuItemStyle} onClick={() => {
+                                                handleArchiveCourse(course.code);
+                                                setMenuOpen({});
+                                            }}>
+                                                <i className="fas fa-box-archive"></i> Archive
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    style={{
+                                        position: "absolute",
+                                        bottom: "18px",
+                                        right: "18px",
+                                        background: "#71717a",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "4px 14px",
+                                        fontSize: "13px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleArchiveCourse(course.code)}
+                                >Archive</button>
+                            </div>
+                        ))}
                     </div>
-                )}
-            </div>
-            {/* Archive/Activate button */}
-            {course.status === "Active" ? (
-                <button
-                    style={{
-                        position: "absolute",
-                        bottom: "18px",
-                        right: "18px",
-                        background: "#71717a",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "8px",
-                        padding: "4px 14px",
-                        fontSize: "13px",
-                        cursor: "pointer"
-                    }}
-                    onClick={() => handleArchiveCourse(course.code)}
-                >Archive</button>
-            ) : (
-                <button
-                    style={{
-                        position: "absolute",
-                        bottom: "18px",
-                        right: "18px",
-                        background: "#22c55e",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "8px",
-                        padding: "4px 14px",
-                        fontSize: "13px",
-                        cursor: "pointer"
-                    }}
-                    onClick={() => handleActivateCourse(course.code)}
-                >Activate</button>
-            )}
-        </div>
-    ))}
-</div>
-                    {/* Add Course Modal */}
                     {showAddCourseModal && (
                         <Modal title="Add Course" onClose={() => setShowAddCourseModal(false)}>
                             <CourseForm
+                                departments={departments}
                                 onSubmit={handleAddCourse}
                                 onCancel={() => setShowAddCourseModal(false)}
                             />
                         </Modal>
                     )}
-                    {/* Edit Course Modal */}
                     {showEditCourseModal && selectedCourse && (
                         <Modal title="Edit Course" onClose={() => setShowEditCourseModal(false)}>
                             <CourseForm
                                 initial={selectedCourse}
+                                departments={departments}
                                 onSubmit={course => {
                                     handleEditCourse(course);
                                     setShowEditCourseModal(false);
@@ -367,6 +299,7 @@ export default function Settings() {
                     )}
                 </>
             )}
+            {/* Departments */}
             {tab === "Departments" && (
                 <>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -389,7 +322,7 @@ export default function Settings() {
                         gap: "32px",
                         marginTop: "24px"
                     }}>
-                        {departments.map(dep => (
+                        {activeDepartments.map(dep => (
                             <div key={dep.name} style={{
                                 background: "#181826",
                                 borderRadius: "16px",
@@ -421,7 +354,6 @@ export default function Settings() {
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department Head: {dep.head}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.faculty} Faculty</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.students} Students</div>
-                                {/* Three-dot menu */}
                                 <div style={{ position: "relative" }}>
                                     <button
                                         style={{
@@ -457,7 +389,7 @@ export default function Settings() {
                                                 <i className="fas fa-edit"></i> Edit
                                             </button>
                                             <button style={menuItemStyle} onClick={() => {
-                                                setDepartments(departments.map(d => d.name === dep.name ? { ...d, status: "Archived" } : d));
+                                                handleArchiveDepartment(dep.name);
                                                 setMenuOpen({});
                                             }}>
                                                 <i className="fas fa-box-archive"></i> Archive
@@ -465,23 +397,47 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
+                                <button
+                                    style={{
+                                        position: "absolute",
+                                        bottom: "18px",
+                                        right: "18px",
+                                        background: "#71717a",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "4px 14px",
+                                        fontSize: "13px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleArchiveDepartment(dep.name)}
+                                >Archive</button>
                             </div>
                         ))}
                     </div>
-                    {/* Add Department Modal */}
                     {showAddDepartmentModal && (
                         <Modal title="Add Department" onClose={() => setShowAddDepartmentModal(false)}>
-                            {/* Department form component here */}
+                            <DepartmentForm
+                                onSubmit={handleAddDepartment}
+                                onCancel={() => setShowAddDepartmentModal(false)}
+                            />
                         </Modal>
                     )}
-                    {/* Edit Department Modal */}
                     {showEditDepartmentModal && selectedDepartment && (
                         <Modal title="Edit Department" onClose={() => setShowEditDepartmentModal(false)}>
-                            {/* Department form component here with initial={selectedDepartment} */}
+                            <DepartmentForm
+                                initial={selectedDepartment}
+                                onSubmit={dep => {
+                                    handleEditDepartment(dep);
+                                    setShowEditDepartmentModal(false);
+                                }}
+                                onCancel={() => setShowEditDepartmentModal(false)}
+                            />
                         </Modal>
                     )}
                 </>
             )}
+            {/* Academic Years */}
             {tab === "Academic Years" && (
                 <>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -504,7 +460,7 @@ export default function Settings() {
                         gap: "32px",
                         marginTop: "24px"
                     }}>
-                        {academicYears.map(year => (
+                        {activeYears.map(year => (
                             <div key={year.name} style={{
                                 background: "#181826",
                                 borderRadius: "16px",
@@ -537,7 +493,6 @@ export default function Settings() {
                                 </div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Start Date: {year.start}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>End Date: {year.end}</div>
-                                {/* Three-dot menu */}
                                 <div style={{ position: "relative" }}>
                                     <button
                                         style={{
@@ -572,25 +527,152 @@ export default function Settings() {
                                             }}>
                                                 <i className="fas fa-edit"></i> Edit
                                             </button>
+                                            <button style={menuItemStyle} onClick={() => {
+                                                handleArchiveYear(year.name);
+                                                setMenuOpen({});
+                                            }}>
+                                                <i className="fas fa-box-archive"></i> Archive
+                                            </button>
                                         </div>
                                     )}
                                 </div>
+                                <button
+                                    style={{
+                                        position: "absolute",
+                                        bottom: "18px",
+                                        right: "18px",
+                                        background: "#71717a",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "4px 14px",
+                                        fontSize: "13px",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleArchiveYear(year.name)}
+                                >Archive</button>
                             </div>
                         ))}
                     </div>
-                    {/* Add Academic Year Modal */}
                     {showAddYearModal && (
                         <Modal title="Add Academic Year" onClose={() => setShowAddYearModal(false)}>
-                            {/* Academic year form component here */}
+                            <AcademicYearForm
+                                onSubmit={handleAddYear}
+                                onCancel={() => setShowAddYearModal(false)}
+                            />
                         </Modal>
                     )}
-                    {/* Edit Academic Year Modal */}
                     {showEditYearModal && selectedYear && (
                         <Modal title="Edit Academic Year" onClose={() => setShowEditYearModal(false)}>
-                            {/* Academic year form component here with initial={selectedYear} */}
+                            <AcademicYearForm
+                                initial={selectedYear}
+                                onSubmit={year => {
+                                    handleEditYear(year);
+                                    setShowEditYearModal(false);
+                                }}
+                                onCancel={() => setShowEditYearModal(false)}
+                            />
                         </Modal>
                     )}
                 </>
+            )}
+            {/* Archive Tab */}
+            {tab === "Archive" && (
+                <div>
+                    <h3 style={{ color: "#a855f7" }}>Archived Departments</h3>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "32px", marginTop: "12px" }}>
+                        {archivedDepartments.length === 0 && <p style={{ color: "#a3a3a3" }}>No archived departments.</p>}
+                        {archivedDepartments.map(dep => (
+                            <div key={dep.name} style={{
+                                background: "#23234a",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                minWidth: "320px",
+                                color: "#fff",
+                                position: "relative",
+                                flex: "1 1 320px"
+                            }}>
+                                <div style={{ fontWeight: "bold", fontSize: "18px" }}>{dep.name}</div>
+                                <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Est. {dep.established}</div>
+                                <button
+                                    style={{
+                                        marginTop: "16px",
+                                        background: "#22c55e",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "6px 18px",
+                                        fontWeight: "bold",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleActivateDepartment(dep.name)}
+                                >Activate</button>
+                            </div>
+                        ))}
+                    </div>
+                    <h3 style={{ color: "#a855f7", marginTop: "32px" }}>Archived Courses</h3>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "32px", marginTop: "12px" }}>
+                        {archivedCourses.length === 0 && <p style={{ color: "#a3a3a3" }}>No archived courses.</p>}
+                        {archivedCourses.map(course => (
+                            <div key={course.code} style={{
+                                background: "#23234a",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                minWidth: "320px",
+                                color: "#fff",
+                                position: "relative",
+                                flex: "1 1 320px"
+                            }}>
+                                <div style={{ fontWeight: "bold", fontSize: "18px" }}>{course.name}</div>
+                                <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Code: {course.code}</div>
+                                <button
+                                    style={{
+                                        marginTop: "16px",
+                                        background: "#22c55e",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "6px 18px",
+                                        fontWeight: "bold",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleActivateCourse(course.code)}
+                                >Activate</button>
+                            </div>
+                        ))}
+                    </div>
+                    <h3 style={{ color: "#a855f7", marginTop: "32px" }}>Archived Academic Years</h3>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "32px", marginTop: "12px" }}>
+                        {archivedYears.length === 0 && <p style={{ color: "#a3a3a3" }}>No archived academic years.</p>}
+                        {archivedYears.map(year => (
+                            <div key={year.name} style={{
+                                background: "#23234a",
+                                borderRadius: "16px",
+                                padding: "24px",
+                                minWidth: "260px",
+                                color: "#fff",
+                                position: "relative",
+                                flex: "1 1 260px"
+                            }}>
+                                <div style={{ fontWeight: "bold", fontSize: "18px" }}>{year.name}</div>
+                                <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Academic Year</div>
+                                <button
+                                    style={{
+                                        marginTop: "16px",
+                                        background: "#22c55e",
+                                        color: "#fff",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "6px 18px",
+                                        fontWeight: "bold",
+                                        cursor: "pointer"
+                                    }}
+                                    onClick={() => handleActivateYear(year.name)}
+                                >Activate</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             )}
         </div>
     );
@@ -637,7 +719,7 @@ function Modal({ title, children, onClose }) {
 }
 
 // Course Form component
-function CourseForm({ initial, onSubmit, onCancel }) {
+function CourseForm({ initial, departments, onSubmit, onCancel }) {
     const [form, setForm] = useState(
         initial || {
             name: "",
@@ -670,14 +752,18 @@ function CourseForm({ initial, onSubmit, onCancel }) {
                 onChange={e => setForm({ ...form, code: e.target.value })}
                 disabled={!!initial}
             />
-            <input
+            <select
                 name="department"
-                placeholder="Department"
                 required
                 style={inputStyle}
                 value={form.department}
                 onChange={e => setForm({ ...form, department: e.target.value })}
-            />
+            >
+                <option value="">Select Department</option>
+                {departments.map(dep => (
+                    <option key={dep.name} value={dep.name}>{dep.name}</option>
+                ))}
+            </select>
             <input
                 name="credits"
                 placeholder="Credits"
@@ -695,6 +781,190 @@ function CourseForm({ initial, onSubmit, onCancel }) {
                 style={inputStyle}
                 value={form.duration}
                 onChange={e => setForm({ ...form, duration: e.target.value })}
+            />
+            <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
+                <button
+                    type="submit"
+                    style={{
+                        background: "#a855f7",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                >Save</button>
+                <button
+                    type="button"
+                    style={{
+                        background: "#23234a",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                    onClick={onCancel}
+                >Cancel</button>
+            </div>
+        </form>
+    );
+}
+
+// Department Form component
+function DepartmentForm({ initial, onSubmit, onCancel }) {
+    const [form, setForm] = useState(
+        initial || {
+            name: "",
+            established: "",
+            head: "",
+            faculty: "",
+            students: "",
+            status: "Active"
+        }
+    );
+    return (
+        <form onSubmit={e => {
+            e.preventDefault();
+            onSubmit({ ...form, faculty: Number(form.faculty), students: Number(form.students) });
+        }}>
+            <input
+                name="name"
+                placeholder="Department Name"
+                required
+                style={inputStyle}
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                disabled={!!initial}
+            />
+            <input
+                name="established"
+                placeholder="Established Year"
+                type="number"
+                required
+                style={inputStyle}
+                value={form.established}
+                onChange={e => setForm({ ...form, established: e.target.value })}
+            />
+            <input
+                name="head"
+                placeholder="Department Head"
+                required
+                style={inputStyle}
+                value={form.head}
+                onChange={e => setForm({ ...form, head: e.target.value })}
+            />
+            <input
+                name="faculty"
+                placeholder="Number of Faculty"
+                type="number"
+                required
+                style={inputStyle}
+                value={form.faculty}
+                onChange={e => setForm({ ...form, faculty: e.target.value })}
+            />
+            <input
+                name="students"
+                placeholder="Number of Students"
+                type="number"
+                required
+                style={inputStyle}
+                value={form.students}
+                onChange={e => setForm({ ...form, students: e.target.value })}
+            />
+            <select
+                name="status"
+                required
+                style={inputStyle}
+                value={form.status}
+                onChange={e => setForm({ ...form, status: e.target.value })}
+            >
+                <option value="Active">Active</option>
+                <option value="Archived">Archived</option>
+            </select>
+            <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
+                <button
+                    type="submit"
+                    style={{
+                        background: "#a855f7",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                >Save</button>
+                <button
+                    type="button"
+                    style={{
+                        background: "#23234a",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "10px 24px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                    }}
+                    onClick={onCancel}
+                >Cancel</button>
+            </div>
+        </form>
+    );
+}
+
+// Academic Year Form component
+function AcademicYearForm({ initial, onSubmit, onCancel }) {
+    const [form, setForm] = useState(
+        initial || {
+            name: "",
+            status: "Planned",
+            start: "",
+            end: ""
+        }
+    );
+    return (
+        <form onSubmit={e => {
+            e.preventDefault();
+            onSubmit(form);
+        }}>
+            <input
+                name="name"
+                placeholder="Academic Year (e.g. 2025-2026)"
+                required
+                style={inputStyle}
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                disabled={!!initial}
+            />
+            <select
+                name="status"
+                required
+                style={inputStyle}
+                value={form.status}
+                onChange={e => setForm({ ...form, status: e.target.value })}
+            >
+                <option value="Current">Current</option>
+                <option value="Planned">Planned</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <input
+                name="start"
+                placeholder="Start Date (YYYY-MM-DD)"
+                required
+                style={inputStyle}
+                value={form.start}
+                onChange={e => setForm({ ...form, start: e.target.value })}
+            />
+            <input
+                name="end"
+                placeholder="End Date (YYYY-MM-DD)"
+                required
+                style={inputStyle}
+                value={form.end}
+                onChange={e => setForm({ ...form, end: e.target.value })}
             />
             <div style={{ marginTop: "16px", display: "flex", gap: "12px" }}>
                 <button

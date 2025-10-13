@@ -1,7 +1,34 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
+
+// Utility functions
+function getDepartments() {
+    const stored = localStorage.getItem("departments");
+    if (stored) {
+        return JSON.parse(stored)
+            .filter(dep => dep.status === "Active")
+            .map(dep => dep.name);
+    }
+    return [];
+}
+function getCourses() {
+    const stored = localStorage.getItem("courses");
+    if (stored) {
+        return JSON.parse(stored)
+            .filter(course => course.status === "Active")
+            .map(course => course.name);
+    }
+    return [];
+}
+function getAcademicYears() {
+    const stored = localStorage.getItem("academicYears");
+    if (stored) {
+        return JSON.parse(stored).map(y => y.name);
+    }
+    return [];
+}
 
 export default function StudentManagement() {
     const [students, setStudents] = useState([]);
@@ -12,27 +39,43 @@ export default function StudentManagement() {
     const [editStudent, setEditStudent] = useState(null);
     const [filter, setFilter] = useState("All Courses");
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
+    const [departments, setDepartments] = useState(getDepartments());
+    const [courses, setCourses] = useState(getCourses());
+    const [academicYears, setAcademicYears] = useState(getAcademicYears());
     const menuRef = useRef(null);
     const profile = getProfile();
 
     // Fetch students from API
     useEffect(() => {
         axios.get("/api/students").then(res => {
-            setStudents(Array.isArray(res.data) ? res.data : []);
+            const data = Array.isArray(res.data) ? res.data : [];
+            setStudents(data);
+            localStorage.setItem("students", JSON.stringify(data)); // Sync to localStorage
         });
+    }, []);
+
+    // Fetch departments/courses/years from localStorage (update if changed)
+    useEffect(() => {
+        setDepartments(getDepartments());
+        setCourses(getCourses());
+        setAcademicYears(getAcademicYears());
     }, []);
 
     // Add student handler (API)
     const handleAddStudent = async (newStudent) => {
         const res = await axios.post("/api/students", newStudent);
-        setStudents([...students, res.data]);
+        const updated = [...students, res.data];
+        setStudents(updated);
+        localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
         setShowAddModal(false);
     };
 
     // Delete student handler (API)
     const handleDeleteStudent = async (student_id) => {
         await axios.delete(`/api/students/${student_id}`);
-        setStudents(students.filter(s => s.student_id !== student_id));
+        const updated = students.filter(s => s.student_id !== student_id);
+        setStudents(updated);
+        localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
         setMenuOpenId(null);
         setSelectedStudent(null);
     };
@@ -47,7 +90,9 @@ export default function StudentManagement() {
     const handleEditSubmit = async (e) => {
         e.preventDefault();
         const res = await axios.put(`/api/students/${editStudent.student_id}`, editStudent);
-        setStudents(students.map(s => s.student_id === editStudent.student_id ? res.data : s));
+        const updated = students.map(s => s.student_id === editStudent.student_id ? res.data : s);
+        setStudents(updated);
+        localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
         setShowEditModal(false);
         setEditStudent(null);
     };
@@ -92,15 +137,15 @@ export default function StudentManagement() {
             <section className="filters">
                 <select value={filter} onChange={(e) => setFilter(e.target.value)}>
                     <option value="All Courses">All Courses</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Business Administration">Business Administration</option>
-                    <option value="Engineering">Engineering</option>
+                    {courses.map(course => (
+                        <option key={course} value={course}>{course}</option>
+                    ))}
                 </select>
                 <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
                     <option value="All Departments">All Departments</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Business">Business</option>
-                    <option value="Engineering">Engineering</option>
+                    {departments.map(dep => (
+                        <option key={dep} value={dep}>{dep}</option>
+                    ))}
                 </select>
             </section>
             <section className="students-grid">
@@ -169,6 +214,7 @@ export default function StudentManagement() {
                         <p>Age {student.age} years</p>
                         <p>Dept: {student.department}</p>
                         <p>GPA: <span className="gpa">{student.gpa}</span></p>
+                        <p>Academic Year: {student.academicYear || "-"}</p>
                     </div>
                 ))}
             </section>
@@ -209,6 +255,7 @@ export default function StudentManagement() {
                         <p>ID: {selectedStudent.student_id}</p>
                         <p>Course: {selectedStudent.course}</p>
                         <p>Year: {selectedStudent.year}</p>
+                        <p>Academic Year: {selectedStudent.academicYear || "-"}</p>
                         <p>Email: {selectedStudent.email}</p>
                         <p>Phone: {selectedStudent.phone}</p>
                         <p>Age: {selectedStudent.age}</p>
@@ -261,14 +308,22 @@ export default function StudentManagement() {
                                 onChange={e => editStudent ? setEditStudent({ ...editStudent, course: e.target.value }) : null}
                             >
                                 <option value="">Select Course</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Business Administration">Business Administration</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="BSIT">BSIT</option>
+                                {courses.map(course => (
+                                    <option key={course} value={course}>{course}</option>
+                                ))}
                             </select>
                             <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.year}
                                 onChange={e => setEditStudent({ ...editStudent, year: e.target.value })} />
+                            {/* Academic Year Dropdown */}
+                            <select name="academicYear" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editStudent.academicYear || ""}
+                                onChange={e => setEditStudent({ ...editStudent, academicYear: e.target.value })}>
+                                <option value="">Select Academic Year</option>
+                                {academicYears.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.email}
                                 onChange={e => setEditStudent({ ...editStudent, email: e.target.value })} />
@@ -281,9 +336,14 @@ export default function StudentManagement() {
                             <input name="gpa" placeholder="GPA" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.gpa}
                                 onChange={e => setEditStudent({ ...editStudent, gpa: e.target.value })} />
-                            <input name="department" placeholder="Department" required style={{ width: "100%", marginBottom: "8px" }}
+                            <select name="department" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.department}
-                                onChange={e => setEditStudent({ ...editStudent, department: e.target.value })} />
+                                onChange={e => setEditStudent({ ...editStudent, department: e.target.value })}>
+                                <option value="">Select Department</option>
+                                {departments.map(dep => (
+                                    <option key={dep} value={dep}>{dep}</option>
+                                ))}
+                            </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",
@@ -336,10 +396,11 @@ export default function StudentManagement() {
                             e.preventDefault();
                             const form = e.target;
                             const newStudent = {
-                                student_id: "STU" + Math.floor(Math.random() * 1000000), // <-- FIXED
+                                student_id: "STU" + Math.floor(Math.random() * 1000000),
                                 name: form.name.value,
                                 course: form.course.value,
                                 year: form.year.value,
+                                academicYear: form.academicYear.value, // <-- Academic Year
                                 email: form.email.value,
                                 phone: form.phone.value,
                                 age: form.age.value,
@@ -350,13 +411,30 @@ export default function StudentManagement() {
                             handleAddStudent(newStudent);
                         }}>
                             <input name="name" placeholder="Full Name" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="course" placeholder="Course" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <select name="course" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Course</option>
+                                {courses.map(course => (
+                                    <option key={course} value={course}>{course}</option>
+                                ))}
+                            </select>
                             <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }} />
+                            {/* Academic Year Dropdown */}
+                            <select name="academicYear" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Academic Year</option>
+                                {academicYears.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="age" placeholder="Age" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="gpa" placeholder="GPA" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="department" placeholder="Department" required style={{ width: "100%", marginBottom: "8px" }} />
+                            <select name="department" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Department</option>
+                                {departments.map(dep => (
+                                    <option key={dep} value={dep}>{dep}</option>
+                                ))}
+                            </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",
