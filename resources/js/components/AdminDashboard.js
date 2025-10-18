@@ -279,6 +279,18 @@ export default function AdminDashboard() {
         navigate("/");
     };
 
+    // Calculate total students and percent active
+    const totalStudents = students.length;
+    const percentActiveStudents = totalStudents > 0 ? ((activeStudents.length / totalStudents) * 100).toFixed(1) : "0.0";
+
+    // Calculate total faculty and active members
+    const totalFaculty = faculty.length;
+    const activeFacultyCount = activeFaculty.length;
+
+    // Calculate total active courses and departments
+    const totalPrograms = activeCourses; // already filtered to active
+    const totalDepartments = activeDepartments; // already filtered to active
+
     return (
         <div className="dashboard-container">
             {sidebarOpen && (
@@ -383,7 +395,9 @@ export default function AdminDashboard() {
                                 <i className="fas fa-user-graduate card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Total Students</h3>
                                 <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeStudents.length}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+100.0% active</span>
+                                <span className="growth" style={{ color: "#22c55e" }}>
+                                    +{percentActiveStudents}% active
+                                </span>
                             </div>
                             <div className="card faculty-card" style={{
                                 background: "#181826",
@@ -398,8 +412,10 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-chalkboard-teacher card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Faculty Members</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeFaculty.length}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+2 active members</span>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeFacultyCount}</p>
+                                <span className="growth" style={{ color: "#22c55e" }}>
+                                    +{activeFacultyCount} active members
+                                </span>
                             </div>
                             <div className="card courses-card" style={{
                                 background: "#181826",
@@ -414,8 +430,10 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-book card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Active Courses</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeCourses}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+{activeCourses} total programs</span>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalPrograms}</p>
+                                <span className="growth" style={{ color: "#22c55e" }}>
+                                    +{totalPrograms} total programs
+                                </span>
                             </div>
                             <div className="card departments-card" style={{
                                 background: "#181826",
@@ -430,8 +448,10 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-building card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Departments</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeDepartments}</p>
-                                <span className="growth" style={{ color: "#22c55e" }}>+{activeDepartments} total departments</span>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalDepartments}</p>
+                                <span className="growth" style={{ color: "#22c55e" }}>
+                                    +{totalDepartments} total departments
+                                </span>
                             </div>
                         </section>
                         {/* Growth Trends & Faculty Distribution */}

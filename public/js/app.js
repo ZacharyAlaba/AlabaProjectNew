@@ -84753,6 +84753,19 @@ function AdminDashboard() {
       return _ref.apply(this, arguments);
     };
   }();
+
+  // Calculate total students and percent active
+  var totalStudents = students.length;
+  var percentActiveStudents = totalStudents > 0 ? (activeStudents.length / totalStudents * 100).toFixed(1) : "0.0";
+
+  // Calculate total faculty and active members
+  var totalFaculty = faculty.length;
+  var activeFacultyCount = activeFaculty.length;
+
+  // Calculate total active courses and departments
+  var totalPrograms = activeCourses; // already filtered to active
+  var totalDepartments = activeDepartments; // already filtered to active
+
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "dashboard-container"
   }, sidebarOpen && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("aside", {
@@ -84907,7 +84920,7 @@ function AdminDashboard() {
     style: {
       color: "#22c55e"
     }
-  }, "+100.0% active")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, "+", percentActiveStudents, "% active")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card faculty-card",
     style: {
       background: "#181826",
@@ -84936,12 +84949,12 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, activeFaculty.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, activeFacultyCount), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+2 active members")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, "+", activeFacultyCount, " active members")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card courses-card",
     style: {
       background: "#181826",
@@ -84970,12 +84983,12 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, activeCourses), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, totalPrograms), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", activeCourses, " total programs")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, "+", totalPrograms, " total programs")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card departments-card",
     style: {
       background: "#181826",
@@ -85004,12 +85017,12 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, activeDepartments), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, totalDepartments), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", activeDepartments, " total departments"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  }, "+", totalDepartments, " total departments"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     style: {
       display: "flex",
       gap: "24px",
