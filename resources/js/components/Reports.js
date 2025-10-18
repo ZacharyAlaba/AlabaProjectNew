@@ -45,10 +45,8 @@ function getActiveDepartments() {
 function getAcademicYears() {
     const stored = localStorage.getItem("academicYears");
     if (stored) {
-        // Only show active academic years
-        return JSON.parse(stored)
-            .filter(y => y.status === "Active")
-            .map(y => y.name);
+        // Show all years, not just active
+        return JSON.parse(stored).map(y => y.name);
     }
     return [];
 }
@@ -77,13 +75,11 @@ export default function Reports() {
 
     // Filters (for dropdowns)
     const [course, setCourse] = useState("All Courses");
-    const [academicYear, setAcademicYear] = useState(academicYears[0] || "");
-
-    // Filters to apply when Generate Report is clicked
+    const [academicYear, setAcademicYear] = useState("");
     const [reportFilters, setReportFilters] = useState({
         reportType: "Student Report",
         course: "All Courses",
-        academicYear: academicYears[0] || ""
+        academicYear: ""
     });
 
     // Live update on localStorage change
@@ -106,6 +102,15 @@ export default function Reports() {
             setAcademicYear(academicYears[0]);
         }
     }, [academicYears]);
+
+    // Optional: auto-update report on dropdown change
+    useEffect(() => {
+        setReportFilters({
+            reportType,
+            course,
+            academicYear
+        });
+    }, [reportType, course, academicYear]);
 
     // Student count by course (filtered by year and course)
     const filteredStudents = students.filter(s =>
@@ -223,6 +228,7 @@ export default function Reports() {
                     {courses.map(c => <option key={c}>{c}</option>)}
                 </select>
                 <select value={academicYear} onChange={e => setAcademicYear(e.target.value)} style={filterStyle}>
+                    <option value="">All Academic Years</option>
                     {academicYears.map(y => <option key={y}>{y}</option>)}
                 </select>
                 <button

@@ -87099,10 +87099,8 @@ function getActiveDepartments() {
 function getAcademicYears() {
   var stored = localStorage.getItem("academicYears");
   if (stored) {
-    // Only show active academic years
-    return JSON.parse(stored).filter(function (y) {
-      return y.status === "Active";
-    }).map(function (y) {
+    // Show all years, not just active
+    return JSON.parse(stored).map(function (y) {
       return y.name;
     });
   }
@@ -87153,16 +87151,14 @@ function Reports() {
     _useState12 = _slicedToArray(_useState11, 2),
     course = _useState12[0],
     setCourse = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(academicYears[0] || ""),
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
     _useState14 = _slicedToArray(_useState13, 2),
     academicYear = _useState14[0],
     setAcademicYear = _useState14[1];
-
-  // Filters to apply when Generate Report is clicked
   var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       reportType: "Student Report",
       course: "All Courses",
-      academicYear: academicYears[0] || ""
+      academicYear: ""
     }),
     _useState16 = _slicedToArray(_useState15, 2),
     reportFilters = _useState16[0],
@@ -87190,6 +87186,15 @@ function Reports() {
       setAcademicYear(academicYears[0]);
     }
   }, [academicYears]);
+
+  // Optional: auto-update report on dropdown change
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    setReportFilters({
+      reportType: reportType,
+      course: course,
+      academicYear: academicYear
+    });
+  }, [reportType, course, academicYear]);
 
   // Student count by course (filtered by year and course)
   var filteredStudents = students.filter(function (s) {
@@ -87317,7 +87322,9 @@ function Reports() {
       return setAcademicYear(e.target.value);
     },
     style: filterStyle
-  }, academicYears.map(function (y) {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "All Academic Years"), academicYears.map(function (y) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
       key: y
     }, y);
