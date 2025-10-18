@@ -96,6 +96,26 @@ export default function Settings() {
         setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Planned" } : y));
     };
 
+    // --- DELETE HANDLERS ---
+    const handleDeleteDepartment = (name) => {
+        if (window.confirm(`Delete department "${name}" permanently? This cannot be undone.`)) {
+            const updated = departments.filter(d => d.name !== name);
+            setDepartments(updated);
+        }
+    };
+    const handleDeleteCourse = (code) => {
+        if (window.confirm(`Delete course "${code}" permanently? This cannot be undone.`)) {
+            const updated = courses.filter(c => c.code !== code);
+            setCourses(updated);
+        }
+    };
+    const handleDeleteYear = (name) => {
+        if (window.confirm(`Delete academic year "${name}" permanently? This cannot be undone.`)) {
+            const updated = academicYears.filter(y => y.name !== name);
+            setAcademicYears(updated);
+        }
+    };
+
     // Add/Edit handlers
     const handleAddCourse = (course) => {
         setCourses([...courses, course]);
@@ -210,16 +230,9 @@ export default function Settings() {
                                         padding: "2px 12px",
                                         fontSize: "13px"
                                     }}>{course.status}</span>
-                                </div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
-                                <div style={{ position: "relative" }}>
                                     <button
                                         style={{
-                                            position: "absolute",
-                                            top: "18px",
-                                            right: "18px",
+                                            marginLeft: "8px",
                                             background: "none",
                                             border: "none",
                                             color: "#fff",
@@ -257,21 +270,9 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
-                                <button
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "18px",
-                                        right: "18px",
-                                        background: "#71717a",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "4px 14px",
-                                        fontSize: "13px",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleArchiveCourse(course.code)}
-                                >Archive</button>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
                             </div>
                         ))}
                     </div>
@@ -317,8 +318,8 @@ export default function Settings() {
                         >+ Add Department</button>
                     </div>
                     <div style={{
-                        display: "flex",
-                        flexWrap: "wrap",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
                         gap: "32px",
                         marginTop: "24px"
                     }}>
@@ -350,16 +351,9 @@ export default function Settings() {
                                         padding: "2px 12px",
                                         fontSize: "13px"
                                     }}>{dep.status}</span>
-                                </div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department Head: {dep.head}</div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.faculty} Faculty</div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.students} Students</div>
-                                <div style={{ position: "relative" }}>
                                     <button
                                         style={{
-                                            position: "absolute",
-                                            top: "18px",
-                                            right: "18px",
+                                            marginLeft: "8px",
                                             background: "none",
                                             border: "none",
                                             color: "#fff",
@@ -397,21 +391,9 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
-                                <button
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "18px",
-                                        right: "18px",
-                                        background: "#71717a",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "4px 14px",
-                                        fontSize: "13px",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleArchiveDepartment(dep.name)}
-                                >Archive</button>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department Head: {dep.head}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.faculty} Faculty</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>{dep.students} Students</div>
                             </div>
                         ))}
                     </div>
@@ -455,8 +437,8 @@ export default function Settings() {
                         >+ Add Academic Year</button>
                     </div>
                     <div style={{
-                        display: "flex",
-                        flexWrap: "wrap",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
                         gap: "32px",
                         marginTop: "24px"
                     }}>
@@ -490,15 +472,9 @@ export default function Settings() {
                                         padding: "2px 12px",
                                         fontSize: "13px"
                                     }}>{year.status}</span>
-                                </div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Start Date: {year.start}</div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>End Date: {year.end}</div>
-                                <div style={{ position: "relative" }}>
                                     <button
                                         style={{
-                                            position: "absolute",
-                                            top: "18px",
-                                            right: "18px",
+                                            marginLeft: "8px",
                                             background: "none",
                                             border: "none",
                                             color: "#fff",
@@ -536,21 +512,8 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
-                                <button
-                                    style={{
-                                        position: "absolute",
-                                        bottom: "18px",
-                                        right: "18px",
-                                        background: "#71717a",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "4px 14px",
-                                        fontSize: "13px",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleArchiveYear(year.name)}
-                                >Archive</button>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Start Date: {year.start}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>End Date: {year.end}</div>
                             </div>
                         ))}
                     </div>
@@ -594,19 +557,32 @@ export default function Settings() {
                             }}>
                                 <div style={{ fontWeight: "bold", fontSize: "18px" }}>{dep.name}</div>
                                 <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Est. {dep.established}</div>
-                                <button
-                                    style={{
-                                        marginTop: "16px",
-                                        background: "#22c55e",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "6px 18px",
-                                        fontWeight: "bold",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleActivateDepartment(dep.name)}
-                                >Activate</button>
+                                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                                    <button
+                                        style={{
+                                            background: "#22c55e",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleActivateDepartment(dep.name)}
+                                    >Activate</button>
+                                    <button
+                                        style={{
+                                            background: "#ef4444",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleDeleteDepartment(dep.name)}
+                                    >Delete</button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -625,19 +601,32 @@ export default function Settings() {
                             }}>
                                 <div style={{ fontWeight: "bold", fontSize: "18px" }}>{course.name}</div>
                                 <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Code: {course.code}</div>
-                                <button
-                                    style={{
-                                        marginTop: "16px",
-                                        background: "#22c55e",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "6px 18px",
-                                        fontWeight: "bold",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleActivateCourse(course.code)}
-                                >Activate</button>
+                                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                                    <button
+                                        style={{
+                                            background: "#22c55e",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleActivateCourse(course.code)}
+                                    >Activate</button>
+                                    <button
+                                        style={{
+                                            background: "#ef4444",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleDeleteCourse(course.code)}
+                                    >Delete</button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -656,19 +645,32 @@ export default function Settings() {
                             }}>
                                 <div style={{ fontWeight: "bold", fontSize: "18px" }}>{year.name}</div>
                                 <div style={{ fontSize: "13px", color: "#a3a3a3" }}>Academic Year</div>
-                                <button
-                                    style={{
-                                        marginTop: "16px",
-                                        background: "#22c55e",
-                                        color: "#fff",
-                                        border: "none",
-                                        borderRadius: "8px",
-                                        padding: "6px 18px",
-                                        fontWeight: "bold",
-                                        cursor: "pointer"
-                                    }}
-                                    onClick={() => handleActivateYear(year.name)}
-                                >Activate</button>
+                                <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+                                    <button
+                                        style={{
+                                            background: "#22c55e",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleActivateYear(year.name)}
+                                    >Activate</button>
+                                    <button
+                                        style={{
+                                            background: "#ef4444",
+                                            color: "#fff",
+                                            border: "none",
+                                            borderRadius: "8px",
+                                            padding: "6px 18px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        }}
+                                        onClick={() => handleDeleteYear(year.name)}
+                                    >Delete</button>
+                                </div>
                             </div>
                         ))}
                     </div>

@@ -3,6 +3,17 @@ import axios from "axios";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
 
+// --- Activity Logging ---
+function logActivity(type, desc) {
+    const logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+    logs.unshift({
+        type,
+        desc,
+        time: new Date().toISOString()
+    });
+    localStorage.setItem("activityLog", JSON.stringify(logs));
+}
+
 function getDepartments() {
     const stored = localStorage.getItem("departments");
     if (stored) {
@@ -32,6 +43,7 @@ export default function FacultyManagement() {
     const [selectedFaculty, setSelectedFaculty] = useState(null);
     const [editFaculty, setEditFaculty] = useState(null);
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
+    const [statusFilter, setStatusFilter] = useState("ALL");
     const profile = getProfile();
     const menuRef = useRef(null);
 
@@ -57,15 +69,20 @@ export default function FacultyManagement() {
         const updated = [...faculty, res.data];
         setFaculty(updated);
         localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        logActivity("faculty", `New faculty added: ${newFaculty.name} (${newFaculty.department})`);
         setShowAddModal(false);
     };
 
     // Delete faculty handler (API)
     const handleDeleteFaculty = async (id) => {
+        const fac = faculty.find(f => f.id === id);
         await axios.delete(`/api/faculty/${id}`);
         const updated = faculty.filter(f => f.id !== id);
         setFaculty(updated);
         localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        if (fac) logActivity("faculty", `Faculty deleted: ${fac.name} (${fac.department})`);
         setMenuOpenId(null);
         setSelectedFaculty(null);
     };
@@ -83,14 +100,16 @@ export default function FacultyManagement() {
         const updated = faculty.map(f => f.id === editFaculty.id ? res.data : f);
         setFaculty(updated);
         localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        logActivity("faculty", `Faculty updated: ${editFaculty.name} (${editFaculty.department})`);
         setShowEditModal(false);
         setEditFaculty(null);
     };
 
-    // Filter faculty
-    const filteredFaculty = faculty.filter(fac =>
-        departmentFilter === "All Departments" ||
-        (fac.department && fac.department.toLowerCase().includes(departmentFilter.toLowerCase()))
+    // Filter faculty by status and department
+    const filteredFaculty = faculty.filter(f =>
+        (departmentFilter === "All Departments" || f.department === departmentFilter) &&
+        (statusFilter === "ALL" || f.status === statusFilter)
     );
 
     return (
@@ -120,11 +139,17 @@ export default function FacultyManagement() {
                 </button>
             </section>
             <section className="filters">
-                <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
+                <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)}>
                     <option value="All Departments">All Departments</option>
                     {departments.map(dep => (
                         <option key={dep} value={dep}>{dep}</option>
                     ))}
+                </select>
+                {/* Status Filter */}
+                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                    <option value="ALL">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="OFFLINE">Offline</option>
                 </select>
             </section>
             <section className="students-grid">
@@ -137,12 +162,17 @@ export default function FacultyManagement() {
                                     : ""}
                             </span>
                             <span className="status" style={{
-                                background: "#a855f7",
+                                background: fac.status === "ACTIVE" ? "#a855f7" : "#6366f1",
                                 color: "#fff",
                                 borderRadius: "12px",
-                                padding: "2px 10px",
-                                fontSize: "12px",
-                                marginLeft: "8px"
+                                padding: "2px 18px",
+                                fontSize: "13px",
+                                fontWeight: "bold",
+                                marginLeft: "8px",
+                                display: "inline-block",
+                                minWidth: "70px",
+                                textAlign: "center",
+                                textTransform: "uppercase"
                             }}>{fac.status}</span>
                             <button
                                 className="menu-btn"
@@ -319,6 +349,13 @@ export default function FacultyManagement() {
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.specialization}
                                 onChange={e => setEditFaculty({ ...editFaculty, specialization: e.target.value })} />
+                            {/* Status Dropdown */}
+                            <select name="status" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editFaculty.status}
+                                onChange={e => setEditFaculty({ ...editFaculty, status: e.target.value })}>
+                                <option value="ACTIVE">Active</option>
+                                <option value="OFFLINE">Offline</option>
+                            </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",
@@ -378,7 +415,7 @@ export default function FacultyManagement() {
                                 phone: form.phone.value,
                                 joined: form.joined.value,
                                 specialization: form.specialization.value,
-                                status: "ACTIVE"
+                                status: form.status.value // <-- status from dropdown
                             };
                             handleAddFaculty(newFaculty);
                         }}>
@@ -394,6 +431,11 @@ export default function FacultyManagement() {
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }} />
+                            {/* Status Dropdown */}
+                            <select name="status" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="ACTIVE">Active</option>
+                                <option value="OFFLINE">Offline</option>
+                            </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
                                 color: "#fff",

@@ -45,10 +45,53 @@ function getActiveDepartments() {
     return 0;
 }
 
+// --- Activity Logging ---
+function logActivity(type, desc) {
+    const logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+    logs.unshift({
+        type,
+        desc,
+        time: new Date().toISOString()
+    });
+    localStorage.setItem("activityLog", JSON.stringify(logs));
+}
+
+// --- Helper functions for activity display ---
+function getActivityIcon(type) {
+    switch(type) {
+        case "student": return "fas fa-user-graduate";
+        case "faculty": return "fas fa-chalkboard-teacher";
+        case "course": return "fas fa-book";
+        case "department": return "fas fa-building";
+        case "academicYear": return "fas fa-calendar";
+        default: return "fas fa-info-circle";
+    }
+}
+function getActivityColor(type) {
+    switch(type) {
+        case "student": return "#22c55e";
+        case "faculty": return "#38bdf8";
+        case "course": return "#a855f7";
+        case "department": return "#fbbf24";
+        case "academicYear": return "#6366f1";
+        default: return "#fff";
+    }
+}
+function getActivityTitle(type) {
+    switch(type) {
+        case "student": return "Student added";
+        case "faculty": return "Faculty added";
+        case "course": return "Course added";
+        case "department": return "Department added";
+        case "academicYear": return "Academic Year added";
+        default: return "Activity";
+    }
+}
+
 export default function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [students, setStudents] = useState([]);
-    const [faculty, setFaculty] = useState([]);
+    const [students, setStudents] = useState(JSON.parse(localStorage.getItem("students") || "[]"));
+    const [faculty, setFaculty] = useState(JSON.parse(localStorage.getItem("faculty") || "[]"));
     const [facultyDistribution, setFacultyDistribution] = useState({});
     const [studentEnrollment, setStudentEnrollment] = useState({ labels: [], datasets: [] });
     const [growthTrends, setGrowthTrends] = useState({ labels: [], datasets: [] });
@@ -57,6 +100,22 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
     const location = useLocation();
     const profile = getProfile();
+
+    // Only count ACTIVE
+    const activeStudents = students.filter(s => s.status === "ACTIVE");
+    const activeFaculty = faculty.filter(f => f.status === "ACTIVE");
+
+    // Calculate average GPA for active students
+    const avg_gpa =
+        activeStudents.length > 0
+            ? (
+                activeStudents
+                    .map(s => parseFloat(s.gpa) || 0)
+                    .reduce((a, b) => a + b, 0) / activeStudents.length
+            ).toFixed(2)
+            : 0;
+
+    const academic_year = "2025-2026"; // Replace with dynamic value if needed
 
     // Fetch live stats from API
     useEffect(() => {
@@ -118,7 +177,6 @@ export default function AdminDashboard() {
 
     // Generate Growth Trends (students and faculty count per month)
     useEffect(() => {
-        // For demo: last 6 months, count how many joined in each month
         const months = [];
         const now = new Date();
         for (let i = 5; i >= 0; i--) {
@@ -184,31 +242,15 @@ export default function AdminDashboard() {
         ],
     };
 
-    // Generate live recent activity from students and faculty
-    const recentActivity = [
-        ...students
-            .slice()
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-            .slice(0, 3)
-            .map(s => ({
-                icon: "fas fa-user-graduate",
-                color: "#22c55e",
-                title: "New student registration completed",
-                desc: `${s.name} joined ${s.course || "a program"}`,
-                time: s.created_at ? timeAgo(new Date(s.created_at)) : "Just now"
-            })),
-        ...faculty
-            .slice()
-            .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
-            .slice(0, 2)
-            .map(f => ({
-                icon: "fas fa-user-edit",
-                color: "#38bdf8",
-                title: "Faculty profile updated",
-                desc: `${f.name} updated their specialization`,
-                time: f.updated_at ? timeAgo(new Date(f.updated_at)) : "Just now"
-            }))
-    ].slice(0, 5); // Show only the 5 most recent activities
+    // --- Recent Activity: Read from activityLog ---
+    const activityLog = JSON.parse(localStorage.getItem("activityLog") || "[]");
+    const recentActivity = activityLog.slice(0, 5).map(item => ({
+        icon: getActivityIcon(item.type),
+        color: getActivityColor(item.type),
+        title: getActivityTitle(item.type),
+        desc: item.desc,
+        time: timeAgo(new Date(item.time))
+    }));
 
     // Helper function to format "time ago"
     function timeAgo(date) {
@@ -236,9 +278,6 @@ export default function AdminDashboard() {
         localStorage.clear();
         navigate("/");
     };
-
-    const avg_gpa = 0; // Replace with actual calculation if needed
-    const academic_year = "2025-2026"; // Replace with dynamic value if needed
 
     return (
         <div className="dashboard-container">
@@ -343,7 +382,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-user-graduate card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Total Students</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{students.length}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeStudents.length}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+100.0% active</span>
                             </div>
                             <div className="card faculty-card" style={{
@@ -359,7 +398,7 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-chalkboard-teacher card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Faculty Members</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{faculty.length}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeFaculty.length}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>+2 active members</span>
                             </div>
                             <div className="card courses-card" style={{

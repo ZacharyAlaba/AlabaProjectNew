@@ -84416,10 +84416,6 @@ function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present,
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -84454,16 +84450,77 @@ function getActiveDepartments() {
   }
   return 0;
 }
+
+// --- Activity Logging ---
+function logActivity(type, desc) {
+  var logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+  logs.unshift({
+    type: type,
+    desc: desc,
+    time: new Date().toISOString()
+  });
+  localStorage.setItem("activityLog", JSON.stringify(logs));
+}
+
+// --- Helper functions for activity display ---
+function getActivityIcon(type) {
+  switch (type) {
+    case "student":
+      return "fas fa-user-graduate";
+    case "faculty":
+      return "fas fa-chalkboard-teacher";
+    case "course":
+      return "fas fa-book";
+    case "department":
+      return "fas fa-building";
+    case "academicYear":
+      return "fas fa-calendar";
+    default:
+      return "fas fa-info-circle";
+  }
+}
+function getActivityColor(type) {
+  switch (type) {
+    case "student":
+      return "#22c55e";
+    case "faculty":
+      return "#38bdf8";
+    case "course":
+      return "#a855f7";
+    case "department":
+      return "#fbbf24";
+    case "academicYear":
+      return "#6366f1";
+    default:
+      return "#fff";
+  }
+}
+function getActivityTitle(type) {
+  switch (type) {
+    case "student":
+      return "Student added";
+    case "faculty":
+      return "Faculty added";
+    case "course":
+      return "Course added";
+    case "department":
+      return "Department added";
+    case "academicYear":
+      return "Academic Year added";
+    default:
+      return "Activity";
+  }
+}
 function AdminDashboard() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true),
     _useState2 = _slicedToArray(_useState, 2),
     sidebarOpen = _useState2[0],
     setSidebarOpen = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("students") || "[]")),
     _useState4 = _slicedToArray(_useState3, 2),
     students = _useState4[0],
     setStudents = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("faculty") || "[]")),
     _useState6 = _slicedToArray(_useState5, 2),
     faculty = _useState6[0],
     setFaculty = _useState6[1];
@@ -84496,6 +84553,22 @@ function AdminDashboard() {
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useNavigate)();
   var location = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useLocation)();
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_7__.getProfile)();
+
+  // Only count ACTIVE
+  var activeStudents = students.filter(function (s) {
+    return s.status === "ACTIVE";
+  });
+  var activeFaculty = faculty.filter(function (f) {
+    return f.status === "ACTIVE";
+  });
+
+  // Calculate average GPA for active students
+  var avg_gpa = activeStudents.length > 0 ? (activeStudents.map(function (s) {
+    return parseFloat(s.gpa) || 0;
+  }).reduce(function (a, b) {
+    return a + b;
+  }, 0) / activeStudents.length).toFixed(2) : 0;
+  var academic_year = "2025-2026"; // Replace with dynamic value if needed
 
   // Fetch live stats from API
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
@@ -84557,7 +84630,6 @@ function AdminDashboard() {
 
   // Generate Growth Trends (students and faculty count per month)
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    // For demo: last 6 months, count how many joined in each month
     var months = [];
     var now = new Date();
     for (var i = 5; i >= 0; i--) {
@@ -84616,28 +84688,17 @@ function AdminDashboard() {
     }]
   };
 
-  // Generate live recent activity from students and faculty
-  var recentActivity = [].concat(_toConsumableArray(students.slice().sort(function (a, b) {
-    return new Date(b.created_at) - new Date(a.created_at);
-  }).slice(0, 3).map(function (s) {
+  // --- Recent Activity: Read from activityLog ---
+  var activityLog = JSON.parse(localStorage.getItem("activityLog") || "[]");
+  var recentActivity = activityLog.slice(0, 5).map(function (item) {
     return {
-      icon: "fas fa-user-graduate",
-      color: "#22c55e",
-      title: "New student registration completed",
-      desc: "".concat(s.name, " joined ").concat(s.course || "a program"),
-      time: s.created_at ? timeAgo(new Date(s.created_at)) : "Just now"
+      icon: getActivityIcon(item.type),
+      color: getActivityColor(item.type),
+      title: getActivityTitle(item.type),
+      desc: item.desc,
+      time: timeAgo(new Date(item.time))
     };
-  })), _toConsumableArray(faculty.slice().sort(function (a, b) {
-    return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
-  }).slice(0, 2).map(function (f) {
-    return {
-      icon: "fas fa-user-edit",
-      color: "#38bdf8",
-      title: "Faculty profile updated",
-      desc: "".concat(f.name, " updated their specialization"),
-      time: f.updated_at ? timeAgo(new Date(f.updated_at)) : "Just now"
-    };
-  }))).slice(0, 5); // Show only the 5 most recent activities
+  });
 
   // Helper function to format "time ago"
   function timeAgo(date) {
@@ -84692,9 +84753,6 @@ function AdminDashboard() {
       return _ref.apply(this, arguments);
     };
   }();
-  var avg_gpa = 0; // Replace with actual calculation if needed
-  var academic_year = "2025-2026"; // Replace with dynamic value if needed
-
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "dashboard-container"
   }, sidebarOpen && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("aside", {
@@ -84844,7 +84902,7 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, students.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, activeStudents.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
@@ -84878,7 +84936,7 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, faculty.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, activeFaculty.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
@@ -85420,6 +85478,17 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
+
+// --- Activity Logging ---
+function logActivity(type, desc) {
+  var logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+  logs.unshift({
+    type: type,
+    desc: desc,
+    time: new Date().toISOString()
+  });
+  localStorage.setItem("activityLog", JSON.stringify(logs));
+}
 function getDepartments() {
   var stored = localStorage.getItem("departments");
   if (stored) {
@@ -85477,6 +85546,10 @@ function FacultyManagement() {
     _useState16 = _slicedToArray(_useState15, 2),
     departmentFilter = _useState16[0],
     setDepartmentFilter = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("ALL"),
+    _useState18 = _slicedToArray(_useState17, 2),
+    statusFilter = _useState18[0],
+    setStatusFilter = _useState18[1];
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_3__.getProfile)();
   var menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
@@ -85507,6 +85580,8 @@ function FacultyManagement() {
             updated = [].concat(_toConsumableArray(faculty), [res.data]);
             setFaculty(updated);
             localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            logActivity("faculty", "New faculty added: ".concat(newFaculty.name, " (").concat(newFaculty.department, ")"));
             setShowAddModal(false);
           case 2:
             return _context.a(2);
@@ -85521,10 +85596,13 @@ function FacultyManagement() {
   // Delete faculty handler (API)
   var handleDeleteFaculty = /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(id) {
-      var updated;
+      var fac, updated;
       return _regenerator().w(function (_context2) {
         while (1) switch (_context2.n) {
           case 0:
+            fac = faculty.find(function (f) {
+              return f.id === id;
+            });
             _context2.n = 1;
             return axios__WEBPACK_IMPORTED_MODULE_1___default()["delete"]("/api/faculty/".concat(id));
           case 1:
@@ -85533,6 +85611,8 @@ function FacultyManagement() {
             });
             setFaculty(updated);
             localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            if (fac) logActivity("faculty", "Faculty deleted: ".concat(fac.name, " (").concat(fac.department, ")"));
             setMenuOpenId(null);
             setSelectedFaculty(null);
           case 2:
@@ -85567,6 +85647,8 @@ function FacultyManagement() {
             });
             setFaculty(updated);
             localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            logActivity("faculty", "Faculty updated: ".concat(editFaculty.name, " (").concat(editFaculty.department, ")"));
             setShowEditModal(false);
             setEditFaculty(null);
           case 2:
@@ -85579,9 +85661,9 @@ function FacultyManagement() {
     };
   }();
 
-  // Filter faculty
-  var filteredFaculty = faculty.filter(function (fac) {
-    return departmentFilter === "All Departments" || fac.department && fac.department.toLowerCase().includes(departmentFilter.toLowerCase());
+  // Filter faculty by status and department
+  var filteredFaculty = faculty.filter(function (f) {
+    return (departmentFilter === "All Departments" || f.department === departmentFilter) && (statusFilter === "ALL" || f.status === statusFilter);
   });
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "faculty-management-content"
@@ -85630,7 +85712,18 @@ function FacultyManagement() {
       key: dep,
       value: dep
     }, dep);
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    value: statusFilter,
+    onChange: function onChange(e) {
+      return setStatusFilter(e.target.value);
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ALL"
+  }, "All Status"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "students-grid"
   }, filteredFaculty.map(function (fac) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
@@ -85653,12 +85746,17 @@ function FacultyManagement() {
     }).join('') : ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
       className: "status",
       style: {
-        background: "#a855f7",
+        background: fac.status === "ACTIVE" ? "#a855f7" : "#6366f1",
         color: "#fff",
         borderRadius: "12px",
-        padding: "2px 10px",
-        fontSize: "12px",
-        marginLeft: "8px"
+        padding: "2px 18px",
+        fontSize: "13px",
+        fontWeight: "bold",
+        marginLeft: "8px",
+        display: "inline-block",
+        minWidth: "70px",
+        textAlign: "center",
+        textTransform: "uppercase"
       }
     }, fac.status), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
       className: "menu-btn",
@@ -85942,7 +86040,24 @@ function FacultyManagement() {
         specialization: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "status",
+    required: true,
+    style: {
+      width: "100%",
+      marginBottom: "8px"
+    },
+    value: editFaculty.status,
+    onChange: function onChange(e) {
+      return setEditFaculty(_objectSpread(_objectSpread({}, editFaculty), {}, {
+        status: e.target.value
+      }));
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",
@@ -86004,7 +86119,7 @@ function FacultyManagement() {
         phone: form.phone.value,
         joined: form.joined.value,
         specialization: form.specialization.value,
-        status: "ACTIVE"
+        status: form.status.value // <-- status from dropdown
       };
       handleAddFaculty(newFaculty);
     }
@@ -86070,7 +86185,18 @@ function FacultyManagement() {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "status",
+    required: true,
+    style: {
+      width: "100%",
+      marginBottom: "8px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",
@@ -86960,7 +87086,10 @@ function getActiveDepartments() {
 function getAcademicYears() {
   var stored = localStorage.getItem("academicYears");
   if (stored) {
-    return JSON.parse(stored).map(function (y) {
+    // Only show active academic years
+    return JSON.parse(stored).filter(function (y) {
+      return y.status === "Active";
+    }).map(function (y) {
       return y.name;
     });
   }
@@ -87771,6 +87900,32 @@ function Settings() {
     }));
   };
 
+  // --- DELETE HANDLERS ---
+  var handleDeleteDepartment = function handleDeleteDepartment(name) {
+    if (window.confirm("Delete department \"".concat(name, "\" permanently? This cannot be undone."))) {
+      var updated = departments.filter(function (d) {
+        return d.name !== name;
+      });
+      setDepartments(updated);
+    }
+  };
+  var handleDeleteCourse = function handleDeleteCourse(code) {
+    if (window.confirm("Delete course \"".concat(code, "\" permanently? This cannot be undone."))) {
+      var updated = courses.filter(function (c) {
+        return c.code !== code;
+      });
+      setCourses(updated);
+    }
+  };
+  var handleDeleteYear = function handleDeleteYear(name) {
+    if (window.confirm("Delete academic year \"".concat(name, "\" permanently? This cannot be undone."))) {
+      var updated = academicYears.filter(function (y) {
+        return y.name !== name;
+      });
+      setAcademicYears(updated);
+    }
+  };
+
   // Add/Edit handlers
   var handleAddCourse = function handleAddCourse(course) {
     setCourses([].concat(_toConsumableArray(courses), [course]));
@@ -87934,30 +88089,9 @@ function Settings() {
         padding: "2px 12px",
         fontSize: "13px"
       }
-    }, course.status)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }, course.status), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
       style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "Department: ", course.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "Credits: ", course.credits), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "Duration: ", course.duration, " years"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        position: "relative"
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
-      style: {
-        position: "absolute",
-        top: "18px",
-        right: "18px",
+        marginLeft: "8px",
         background: "none",
         border: "none",
         color: "#fff",
@@ -87997,23 +88131,22 @@ function Settings() {
       }
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
       className: "fas fa-box-archive"
-    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        position: "absolute",
-        bottom: "18px",
-        right: "18px",
-        background: "#71717a",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        padding: "4px 14px",
-        fontSize: "13px",
-        cursor: "pointer"
-      },
-      onClick: function onClick() {
-        return handleArchiveCourse(course.code);
+        fontSize: "14px",
+        marginBottom: "4px"
       }
-    }, "Archive"));
+    }, "Department: ", course.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      style: {
+        fontSize: "14px",
+        marginBottom: "4px"
+      }
+    }, "Credits: ", course.credits), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      style: {
+        fontSize: "14px",
+        marginBottom: "4px"
+      }
+    }, "Duration: ", course.duration, " years"));
   })), showAddCourseModal && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Modal, {
     title: "Add Course",
     onClose: function onClose() {
@@ -88060,8 +88193,8 @@ function Settings() {
     }
   }, "+ Add Department")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      display: "flex",
-      flexWrap: "wrap",
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
       gap: "32px",
       marginTop: "24px"
     }
@@ -88109,30 +88242,9 @@ function Settings() {
         padding: "2px 12px",
         fontSize: "13px"
       }
-    }, dep.status)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }, dep.status), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
       style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "Department Head: ", dep.head), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, dep.faculty, " Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, dep.students, " Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        position: "relative"
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
-      style: {
-        position: "absolute",
-        top: "18px",
-        right: "18px",
+        marginLeft: "8px",
         background: "none",
         border: "none",
         color: "#fff",
@@ -88172,23 +88284,22 @@ function Settings() {
       }
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
       className: "fas fa-box-archive"
-    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        position: "absolute",
-        bottom: "18px",
-        right: "18px",
-        background: "#71717a",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        padding: "4px 14px",
-        fontSize: "13px",
-        cursor: "pointer"
-      },
-      onClick: function onClick() {
-        return handleArchiveDepartment(dep.name);
+        fontSize: "14px",
+        marginBottom: "4px"
       }
-    }, "Archive"));
+    }, "Department Head: ", dep.head), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      style: {
+        fontSize: "14px",
+        marginBottom: "4px"
+      }
+    }, dep.faculty, " Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      style: {
+        fontSize: "14px",
+        marginBottom: "4px"
+      }
+    }, dep.students, " Students"));
   })), showAddDepartmentModal && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Modal, {
     title: "Add Department",
     onClose: function onClose() {
@@ -88233,8 +88344,8 @@ function Settings() {
     }
   }, "+ Add Academic Year")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      display: "flex",
-      flexWrap: "wrap",
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
       gap: "32px",
       marginTop: "24px"
     }
@@ -88282,25 +88393,9 @@ function Settings() {
         padding: "2px 12px",
         fontSize: "13px"
       }
-    }, year.status)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }, year.status), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
       style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "Start Date: ", year.start), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        fontSize: "14px",
-        marginBottom: "4px"
-      }
-    }, "End Date: ", year.end), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-      style: {
-        position: "relative"
-      }
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
-      style: {
-        position: "absolute",
-        top: "18px",
-        right: "18px",
+        marginLeft: "8px",
         background: "none",
         border: "none",
         color: "#fff",
@@ -88340,23 +88435,17 @@ function Settings() {
       }
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
       className: "fas fa-box-archive"
-    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }), " Archive"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        position: "absolute",
-        bottom: "18px",
-        right: "18px",
-        background: "#71717a",
-        color: "#fff",
-        border: "none",
-        borderRadius: "8px",
-        padding: "4px 14px",
-        fontSize: "13px",
-        cursor: "pointer"
-      },
-      onClick: function onClick() {
-        return handleArchiveYear(year.name);
+        fontSize: "14px",
+        marginBottom: "4px"
       }
-    }, "Archive"));
+    }, "Start Date: ", year.start), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+      style: {
+        fontSize: "14px",
+        marginBottom: "4px"
+      }
+    }, "End Date: ", year.end));
   })), showAddYearModal && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(Modal, {
     title: "Add Academic Year",
     onClose: function onClose() {
@@ -88418,9 +88507,14 @@ function Settings() {
         fontSize: "13px",
         color: "#a3a3a3"
       }
-    }, "Est. ", dep.established), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }, "Est. ", dep.established), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        marginTop: "16px",
+        display: "flex",
+        gap: "8px",
+        marginTop: "16px"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
         background: "#22c55e",
         color: "#fff",
         border: "none",
@@ -88432,7 +88526,20 @@ function Settings() {
       onClick: function onClick() {
         return handleActivateDepartment(dep.name);
       }
-    }, "Activate"));
+    }, "Activate"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "6px 18px",
+        fontWeight: "bold",
+        cursor: "pointer"
+      },
+      onClick: function onClick() {
+        return handleDeleteDepartment(dep.name);
+      }
+    }, "Delete")));
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h3", {
     style: {
       color: "#a855f7",
@@ -88471,9 +88578,14 @@ function Settings() {
         fontSize: "13px",
         color: "#a3a3a3"
       }
-    }, "Code: ", course.code), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }, "Code: ", course.code), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        marginTop: "16px",
+        display: "flex",
+        gap: "8px",
+        marginTop: "16px"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
         background: "#22c55e",
         color: "#fff",
         border: "none",
@@ -88485,7 +88597,20 @@ function Settings() {
       onClick: function onClick() {
         return handleActivateCourse(course.code);
       }
-    }, "Activate"));
+    }, "Activate"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "6px 18px",
+        fontWeight: "bold",
+        cursor: "pointer"
+      },
+      onClick: function onClick() {
+        return handleDeleteCourse(course.code);
+      }
+    }, "Delete")));
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h3", {
     style: {
       color: "#a855f7",
@@ -88524,9 +88649,14 @@ function Settings() {
         fontSize: "13px",
         color: "#a3a3a3"
       }
-    }, "Academic Year"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    }, "Academic Year"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
-        marginTop: "16px",
+        display: "flex",
+        gap: "8px",
+        marginTop: "16px"
+      }
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
         background: "#22c55e",
         color: "#fff",
         border: "none",
@@ -88538,7 +88668,20 @@ function Settings() {
       onClick: function onClick() {
         return handleActivateYear(year.name);
       }
-    }, "Activate"));
+    }, "Activate"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+      style: {
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        borderRadius: "8px",
+        padding: "6px 18px",
+        fontWeight: "bold",
+        cursor: "pointer"
+      },
+      onClick: function onClick() {
+        return handleDeleteYear(year.name);
+      }
+    }, "Delete")));
   }))));
 }
 
@@ -89002,6 +89145,17 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
+// --- Activity Logging ---
+function logActivity(type, desc) {
+  var logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+  logs.unshift({
+    type: type,
+    desc: desc,
+    time: new Date().toISOString()
+  });
+  localStorage.setItem("activityLog", JSON.stringify(logs));
+}
+
 // Utility functions
 function getDepartments() {
   var stored = localStorage.getItem("departments");
@@ -89028,12 +89182,16 @@ function getCourses() {
 function getAcademicYears() {
   var stored = localStorage.getItem("academicYears");
   if (stored) {
-    return JSON.parse(stored).map(function (y) {
+    // Show all except archived
+    return JSON.parse(stored).filter(function (y) {
+      return y.status !== "Archived";
+    }).map(function (y) {
       return y.name;
     });
   }
   return [];
 }
+var yearOptions = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 function StudentManagement() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
@@ -89067,18 +89225,22 @@ function StudentManagement() {
     _useState14 = _slicedToArray(_useState13, 2),
     departmentFilter = _useState14[0],
     setDepartmentFilter = _useState14[1];
-  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getDepartments()),
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("ALL"),
     _useState16 = _slicedToArray(_useState15, 2),
-    departments = _useState16[0],
-    setDepartments = _useState16[1];
-  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getCourses()),
+    statusFilter = _useState16[0],
+    setStatusFilter = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getDepartments()),
     _useState18 = _slicedToArray(_useState17, 2),
-    courses = _useState18[0],
-    setCourses = _useState18[1];
-  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    departments = _useState18[0],
+    setDepartments = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getCourses()),
     _useState20 = _slicedToArray(_useState19, 2),
-    academicYears = _useState20[0],
-    setAcademicYears = _useState20[1];
+    courses = _useState20[0],
+    setCourses = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    _useState22 = _slicedToArray(_useState21, 2),
+    academicYears = _useState22[0],
+    setAcademicYears = _useState22[1];
   var menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_3__.getProfile)();
 
@@ -89112,6 +89274,8 @@ function StudentManagement() {
             updated = [].concat(_toConsumableArray(students), [res.data]);
             setStudents(updated);
             localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            logActivity("student", "New student added: ".concat(newStudent.name, " (").concat(newStudent.course, ")"));
             setShowAddModal(false);
           case 2:
             return _context.a(2);
@@ -89126,10 +89290,13 @@ function StudentManagement() {
   // Delete student handler (API)
   var handleDeleteStudent = /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(student_id) {
-      var updated;
+      var student, updated;
       return _regenerator().w(function (_context2) {
         while (1) switch (_context2.n) {
           case 0:
+            student = students.find(function (s) {
+              return s.student_id === student_id;
+            });
             _context2.n = 1;
             return axios__WEBPACK_IMPORTED_MODULE_1___default()["delete"]("/api/students/".concat(student_id));
           case 1:
@@ -89138,6 +89305,8 @@ function StudentManagement() {
             });
             setStudents(updated);
             localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            if (student) logActivity("student", "Student deleted: ".concat(student.name, " (").concat(student.course, ")"));
             setMenuOpenId(null);
             setSelectedStudent(null);
           case 2:
@@ -89172,6 +89341,8 @@ function StudentManagement() {
             });
             setStudents(updated);
             localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+            // --- LOG ACTIVITY ---
+            logActivity("student", "Student updated: ".concat(editStudent.name, " (").concat(editStudent.course, ")"));
             setShowEditModal(false);
             setEditStudent(null);
           case 2:
@@ -89188,7 +89359,8 @@ function StudentManagement() {
   var filteredStudents = students.filter(function (student) {
     var courseMatch = filter === "All Courses" || student.course && student.course.toLowerCase().includes(filter.toLowerCase());
     var deptMatch = departmentFilter === "All Departments" || student.department && student.department.toLowerCase().includes(departmentFilter.toLowerCase());
-    return courseMatch && deptMatch;
+    var statusMatch = statusFilter === "ALL" || student.status === statusFilter;
+    return courseMatch && deptMatch && statusMatch;
   });
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "student-management-content"
@@ -89249,7 +89421,18 @@ function StudentManagement() {
       key: dep,
       value: dep
     }, dep);
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    value: statusFilter,
+    onChange: function onChange(e) {
+      return setStatusFilter(e.target.value);
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ALL"
+  }, "All Status"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "students-grid"
   }, filteredStudents.map(function (student) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
@@ -89272,12 +89455,17 @@ function StudentManagement() {
     }).join('') : ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
       className: "status",
       style: {
-        background: "#a855f7",
+        background: student.status === "ACTIVE" ? "#a855f7" : "#6366f1",
         color: "#fff",
         borderRadius: "12px",
-        padding: "2px 10px",
-        fontSize: "12px",
-        marginLeft: "8px"
+        padding: "2px 18px",
+        fontSize: "13px",
+        fontWeight: "bold",
+        marginLeft: "8px",
+        display: "inline-block",
+        minWidth: "70px",
+        textAlign: "center",
+        textTransform: "uppercase"
       }
     }, student.status), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
       className: "menu-btn",
@@ -89449,9 +89637,8 @@ function StudentManagement() {
       key: course,
       value: course
     }, course);
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "year",
-    placeholder: "Year",
     required: true,
     style: {
       width: "100%",
@@ -89463,7 +89650,14 @@ function StudentManagement() {
         year: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Year"), yearOptions.map(function (y) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+      key: y,
+      value: y
+    }, y);
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "academicYear",
     required: true,
     style: {
@@ -89559,7 +89753,24 @@ function StudentManagement() {
       key: dep,
       value: dep
     }, dep);
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "status",
+    required: true,
+    style: {
+      width: "100%",
+      marginBottom: "8px"
+    },
+    value: editStudent.status,
+    onChange: function onChange(e) {
+      return setEditStudent(_objectSpread(_objectSpread({}, editStudent), {}, {
+        status: e.target.value
+      }));
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",
@@ -89619,13 +89830,12 @@ function StudentManagement() {
         course: form.course.value,
         year: form.year.value,
         academicYear: form.academicYear.value,
-        // <-- Academic Year
         email: form.email.value,
         phone: form.phone.value,
         age: form.age.value,
         gpa: form.gpa.value,
         department: form.department.value,
-        status: "ACTIVE"
+        status: form.status.value
       };
       handleAddStudent(newStudent);
     }
@@ -89651,15 +89861,21 @@ function StudentManagement() {
       key: course,
       value: course
     }, course);
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "year",
-    placeholder: "Year",
     required: true,
     style: {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Year"), yearOptions.map(function (y) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+      key: y,
+      value: y
+    }, y);
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "academicYear",
     required: true,
     style: {
@@ -89719,7 +89935,18 @@ function StudentManagement() {
       key: dep,
       value: dep
     }, dep);
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "status",
+    required: true,
+    style: {
+      width: "100%",
+      marginBottom: "8px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "ACTIVE"
+  }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "OFFLINE"
+  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",

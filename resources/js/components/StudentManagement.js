@@ -3,6 +3,17 @@ import axios from "axios";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
 
+// --- Activity Logging ---
+function logActivity(type, desc) {
+    const logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
+    logs.unshift({
+        type,
+        desc,
+        time: new Date().toISOString()
+    });
+    localStorage.setItem("activityLog", JSON.stringify(logs));
+}
+
 // Utility functions
 function getDepartments() {
     const stored = localStorage.getItem("departments");
@@ -25,10 +36,20 @@ function getCourses() {
 function getAcademicYears() {
     const stored = localStorage.getItem("academicYears");
     if (stored) {
-        return JSON.parse(stored).map(y => y.name);
+        // Show all except archived
+        return JSON.parse(stored)
+            .filter(y => y.status !== "Archived")
+            .map(y => y.name);
     }
     return [];
 }
+
+const yearOptions = [
+    "1st Year",
+    "2nd Year",
+    "3rd Year",
+    "4th Year"
+];
 
 export default function StudentManagement() {
     const [students, setStudents] = useState([]);
@@ -39,6 +60,7 @@ export default function StudentManagement() {
     const [editStudent, setEditStudent] = useState(null);
     const [filter, setFilter] = useState("All Courses");
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
+    const [statusFilter, setStatusFilter] = useState("ALL");
     const [departments, setDepartments] = useState(getDepartments());
     const [courses, setCourses] = useState(getCourses());
     const [academicYears, setAcademicYears] = useState(getAcademicYears());
@@ -67,15 +89,20 @@ export default function StudentManagement() {
         const updated = [...students, res.data];
         setStudents(updated);
         localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        logActivity("student", `New student added: ${newStudent.name} (${newStudent.course})`);
         setShowAddModal(false);
     };
 
     // Delete student handler (API)
     const handleDeleteStudent = async (student_id) => {
+        const student = students.find(s => s.student_id === student_id);
         await axios.delete(`/api/students/${student_id}`);
         const updated = students.filter(s => s.student_id !== student_id);
         setStudents(updated);
         localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        if (student) logActivity("student", `Student deleted: ${student.name} (${student.course})`);
         setMenuOpenId(null);
         setSelectedStudent(null);
     };
@@ -93,6 +120,8 @@ export default function StudentManagement() {
         const updated = students.map(s => s.student_id === editStudent.student_id ? res.data : s);
         setStudents(updated);
         localStorage.setItem("students", JSON.stringify(updated)); // Sync to localStorage
+        // --- LOG ACTIVITY ---
+        logActivity("student", `Student updated: ${editStudent.name} (${editStudent.course})`);
         setShowEditModal(false);
         setEditStudent(null);
     };
@@ -105,7 +134,9 @@ export default function StudentManagement() {
         const deptMatch =
             departmentFilter === "All Departments" ||
             (student.department && student.department.toLowerCase().includes(departmentFilter.toLowerCase()));
-        return courseMatch && deptMatch;
+        const statusMatch =
+            statusFilter === "ALL" || student.status === statusFilter;
+        return courseMatch && deptMatch && statusMatch;
     });
 
     return (
@@ -147,6 +178,12 @@ export default function StudentManagement() {
                         <option key={dep} value={dep}>{dep}</option>
                     ))}
                 </select>
+                {/* Status Filter */}
+                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                    <option value="ALL">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="OFFLINE">Offline</option>
+                </select>
             </section>
             <section className="students-grid">
                 {filteredStudents.map((student) => (
@@ -155,14 +192,24 @@ export default function StudentManagement() {
                             <span className="initials">
                                 {student.name ? student.name.split(' ').map(n => n[0]).join('') : ""}
                             </span>
-                            <span className="status" style={{
-                                background: "#a855f7",
-                                color: "#fff",
-                                borderRadius: "12px",
-                                padding: "2px 10px",
-                                fontSize: "12px",
-                                marginLeft: "8px"
-                            }}>{student.status}</span>
+                            <span
+                                className="status"
+                                style={{
+                                    background: student.status === "ACTIVE" ? "#a855f7" : "#6366f1",
+                                    color: "#fff",
+                                    borderRadius: "12px",
+                                    padding: "2px 18px",
+                                    fontSize: "13px",
+                                    fontWeight: "bold",
+                                    marginLeft: "8px",
+                                    display: "inline-block",
+                                    minWidth: "70px",
+                                    textAlign: "center",
+                                    textTransform: "uppercase"
+                                }}
+                            >
+                                {student.status}
+                            </span>
                             <button
                                 className="menu-btn"
                                 style={{
@@ -312,10 +359,18 @@ export default function StudentManagement() {
                                     <option key={course} value={course}>{course}</option>
                                 ))}
                             </select>
-                            <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }}
+                            <select
+                                name="year"
+                                required
+                                style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.year}
-                                onChange={e => setEditStudent({ ...editStudent, year: e.target.value })} />
-                            {/* Academic Year Dropdown */}
+                                onChange={e => setEditStudent({ ...editStudent, year: e.target.value })}
+                            >
+                                <option value="">Select Year</option>
+                                {yearOptions.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
                             <select name="academicYear" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.academicYear || ""}
                                 onChange={e => setEditStudent({ ...editStudent, academicYear: e.target.value })}>
@@ -343,6 +398,12 @@ export default function StudentManagement() {
                                 {departments.map(dep => (
                                     <option key={dep} value={dep}>{dep}</option>
                                 ))}
+                            </select>
+                            <select name="status" required style={{ width: "100%", marginBottom: "8px" }}
+                                value={editStudent.status}
+                                onChange={e => setEditStudent({ ...editStudent, status: e.target.value })}>
+                                <option value="ACTIVE">Active</option>
+                                <option value="OFFLINE">Offline</option>
                             </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
@@ -400,13 +461,13 @@ export default function StudentManagement() {
                                 name: form.name.value,
                                 course: form.course.value,
                                 year: form.year.value,
-                                academicYear: form.academicYear.value, // <-- Academic Year
+                                academicYear: form.academicYear.value,
                                 email: form.email.value,
                                 phone: form.phone.value,
                                 age: form.age.value,
                                 gpa: form.gpa.value,
                                 department: form.department.value,
-                                status: "ACTIVE"
+                                status: form.status.value
                             };
                             handleAddStudent(newStudent);
                         }}>
@@ -417,8 +478,12 @@ export default function StudentManagement() {
                                     <option key={course} value={course}>{course}</option>
                                 ))}
                             </select>
-                            <input name="year" placeholder="Year" required style={{ width: "100%", marginBottom: "8px" }} />
-                            {/* Academic Year Dropdown */}
+                            <select name="year" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Year</option>
+                                {yearOptions.map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
                             <select name="academicYear" required style={{ width: "100%", marginBottom: "8px" }}>
                                 <option value="">Select Academic Year</option>
                                 {academicYears.map(y => (
@@ -434,6 +499,10 @@ export default function StudentManagement() {
                                 {departments.map(dep => (
                                     <option key={dep} value={dep}>{dep}</option>
                                 ))}
+                            </select>
+                            <select name="status" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="ACTIVE">Active</option>
+                                <option value="OFFLINE">Offline</option>
                             </select>
                             <button type="submit" style={{
                                 background: "#a855f7",

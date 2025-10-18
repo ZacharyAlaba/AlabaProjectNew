@@ -45,7 +45,10 @@ function getActiveDepartments() {
 function getAcademicYears() {
     const stored = localStorage.getItem("academicYears");
     if (stored) {
-        return JSON.parse(stored).map(y => y.name);
+        // Only show active academic years
+        return JSON.parse(stored)
+            .filter(y => y.status === "Active")
+            .map(y => y.name);
     }
     return [];
 }
