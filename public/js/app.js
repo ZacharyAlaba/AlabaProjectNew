@@ -84813,11 +84813,7 @@ function AdminDashboard() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
     className: "fas fa-sign-out-alt"
   }), " Logout")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("main", {
-    className: "main-content",
-    style: {
-      marginLeft: sidebarOpen ? "250px" : "0",
-      transition: "margin-left 0.3s"
-    }
+    className: "main-content"
   }, !sidebarOpen && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     className: "open-sidebar-btn",
     style: {
@@ -84881,10 +84877,8 @@ function AdminDashboard() {
   }, "ACADEMIC YEAR ", academic_year)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "stats-cards",
     style: {
-      display: "flex",
-      gap: "24px",
-      marginBottom: "32px",
-      justifyContent: "center"
+      marginBottom: "24px",
+      width: "100%"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card student-card",
@@ -85023,18 +85017,19 @@ function AdminDashboard() {
       color: "#22c55e"
     }
   }, "+", totalDepartments, " total departments"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+    className: "panels-grid",
     style: {
-      display: "flex",
-      gap: "24px",
-      marginBottom: "32px"
+      display: "grid",
+      gridTemplateColumns: "2fr 1fr",
+      gap: "18px",
+      marginBottom: "24px",
+      width: "100%"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      flex: 1,
       background: "#181826",
       borderRadius: "16px",
-      padding: "24px",
-      marginRight: "12px"
+      padding: "24px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h3", {
     style: {
@@ -85044,7 +85039,7 @@ function AdminDashboard() {
   }, "Growth Trends"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       width: "100%",
-      height: "400px"
+      height: "360px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_4__.Line, {
     data: growthTrends,
@@ -85074,15 +85069,11 @@ function AdminDashboard() {
   }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "chart distribution-chart",
     style: {
-      width: "320px",
       background: "#181826",
       borderRadius: "16px",
       padding: "24px",
-      boxSizing: "border-box",
       display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center"
+      flexDirection: "column"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h3", {
     style: {
@@ -85095,14 +85086,15 @@ function AdminDashboard() {
       color: "#fff"
     }
   }, "By Department"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    className: "doughnut-wrap",
     style: {
-      width: "180px",
-      height: "180px"
+      width: "100%",
+      height: "300px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_4__.Doughnut, {
     data: doughnutChartData,
     options: {
-      responsive: false,
+      responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
@@ -85114,10 +85106,9 @@ function AdminDashboard() {
             }
           }
         }
-      }
-    },
-    width: 180,
-    height: 180
+      },
+      cutout: "60%"
+    }
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "chart-legend",
     style: {
@@ -85563,6 +85554,11 @@ function FacultyManagement() {
     _useState18 = _slicedToArray(_useState17, 2),
     statusFilter = _useState18[0],
     setStatusFilter = _useState18[1];
+  // NEW: search query
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    _useState20 = _slicedToArray(_useState19, 2),
+    searchQuery = _useState20[0],
+    setSearchQuery = _useState20[1];
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_3__.getProfile)();
   var menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
@@ -85674,9 +85670,16 @@ function FacultyManagement() {
     };
   }();
 
-  // Filter faculty by status and department
+  // Filter faculty by status, department, and search
   var filteredFaculty = faculty.filter(function (f) {
-    return (departmentFilter === "All Departments" || f.department === departmentFilter) && (statusFilter === "ALL" || f.status === statusFilter);
+    var deptMatch = departmentFilter === "All Departments" || f.department === departmentFilter;
+    var statusMatch = statusFilter === "ALL" || f.status === statusFilter;
+    // NEW: search across name, email, department, faculty_id
+    var q = (searchQuery || "").trim().toLowerCase();
+    var searchMatch = q.length === 0 || [f.name, f.email, f.department, f.faculty_id].filter(Boolean).some(function (v) {
+      return String(v).toLowerCase().includes(q);
+    });
+    return deptMatch && statusMatch && searchMatch;
   });
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "faculty-management-content"
@@ -85712,11 +85715,66 @@ function FacultyManagement() {
       return setShowAddModal(true);
     }
   }, "+ Add Faculty")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
-    className: "filters"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    className: "search-and-filter-row",
+    style: {
+      marginTop: "12px",
+      marginBottom: "8px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      width: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      flex: 1,
+      background: "#23234a",
+      border: "1px solid rgba(255,255,255,0.06)",
+      borderRadius: "12px",
+      padding: "10px 14px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
+    className: "fas fa-search",
+    style: {
+      color: "#a3a3a3",
+      fontSize: "14px"
+    },
+    "aria-hidden": "true"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    type: "text",
+    value: searchQuery,
+    onChange: function onChange(e) {
+      return setSearchQuery(e.target.value);
+    },
+    placeholder: "Search faculty by name, email, or department...",
+    "aria-label": "Search faculty",
+    style: {
+      flex: 1,
+      background: "transparent",
+      border: "none",
+      outline: "none",
+      color: "#fff",
+      fontSize: "14px"
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     value: departmentFilter,
     onChange: function onChange(e) {
       return setDepartmentFilter(e.target.value);
+    },
+    style: {
+      background: "#23234a",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      fontSize: "14px",
+      minWidth: "180px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "All Departments"
@@ -85729,6 +85787,15 @@ function FacultyManagement() {
     value: statusFilter,
     onChange: function onChange(e) {
       return setStatusFilter(e.target.value);
+    },
+    style: {
+      background: "#23234a",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      fontSize: "14px",
+      minWidth: "140px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "ALL"
@@ -85736,7 +85803,7 @@ function FacultyManagement() {
     value: "ACTIVE"
   }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "OFFLINE"
-  }, "Offline"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  }, "Offline")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "students-grid"
   }, filteredFaculty.map(function (fac) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
@@ -89237,6 +89304,8 @@ function StudentManagement() {
     _useState10 = _slicedToArray(_useState1, 2),
     editStudent = _useState10[0],
     setEditStudent = _useState10[1];
+
+  // filters
   var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("All Courses"),
     _useState12 = _slicedToArray(_useState11, 2),
     filter = _useState12[0],
@@ -89249,18 +89318,24 @@ function StudentManagement() {
     _useState16 = _slicedToArray(_useState15, 2),
     statusFilter = _useState16[0],
     setStatusFilter = _useState16[1];
-  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getDepartments()),
+
+  // NEW: search query
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
     _useState18 = _slicedToArray(_useState17, 2),
-    departments = _useState18[0],
-    setDepartments = _useState18[1];
-  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getCourses()),
+    searchQuery = _useState18[0],
+    setSearchQuery = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getDepartments()),
     _useState20 = _slicedToArray(_useState19, 2),
-    courses = _useState20[0],
-    setCourses = _useState20[1];
-  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    departments = _useState20[0],
+    setDepartments = _useState20[1];
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getCourses()),
     _useState22 = _slicedToArray(_useState21, 2),
-    academicYears = _useState22[0],
-    setAcademicYears = _useState22[1];
+    courses = _useState22[0],
+    setCourses = _useState22[1];
+  var _useState23 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    _useState24 = _slicedToArray(_useState23, 2),
+    academicYears = _useState24[0],
+    setAcademicYears = _useState24[1];
   var menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_3__.getProfile)();
 
@@ -89380,7 +89455,13 @@ function StudentManagement() {
     var courseMatch = filter === "All Courses" || student.course && student.course.toLowerCase().includes(filter.toLowerCase());
     var deptMatch = departmentFilter === "All Departments" || student.department && student.department.toLowerCase().includes(departmentFilter.toLowerCase());
     var statusMatch = statusFilter === "ALL" || student.status === statusFilter;
-    return courseMatch && deptMatch && statusMatch;
+
+    // NEW: search match (name, email, student_id)
+    var q = (searchQuery || "").trim().toLowerCase();
+    var searchMatch = q.length === 0 || [student.name, student.email, student.student_id].filter(Boolean).some(function (v) {
+      return String(v).toLowerCase().includes(q);
+    });
+    return courseMatch && deptMatch && statusMatch && searchMatch;
   });
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "student-management-content"
@@ -89416,11 +89497,66 @@ function StudentManagement() {
       return setShowAddModal(true);
     }
   }, "+ Add Student")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
-    className: "filters"
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    className: "search-and-filter-row",
+    style: {
+      marginTop: "12px",
+      marginBottom: "8px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      width: "100%"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      flex: 1,
+      background: "#23234a",
+      border: "1px solid rgba(255,255,255,0.06)",
+      borderRadius: "12px",
+      padding: "10px 14px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
+    className: "fas fa-search",
+    style: {
+      color: "#a3a3a3",
+      fontSize: "14px"
+    },
+    "aria-hidden": "true"
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    type: "text",
+    value: searchQuery,
+    onChange: function onChange(e) {
+      return setSearchQuery(e.target.value);
+    },
+    placeholder: "Search students by name, email, or student ID...",
+    "aria-label": "Search students",
+    style: {
+      flex: 1,
+      background: "transparent",
+      border: "none",
+      outline: "none",
+      color: "#fff",
+      fontSize: "14px"
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     value: filter,
     onChange: function onChange(e) {
       return setFilter(e.target.value);
+    },
+    style: {
+      background: "#23234a",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      fontSize: "14px",
+      minWidth: "180px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "All Courses"
@@ -89433,6 +89569,15 @@ function StudentManagement() {
     value: departmentFilter,
     onChange: function onChange(e) {
       return setDepartmentFilter(e.target.value);
+    },
+    style: {
+      background: "#23234a",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      fontSize: "14px",
+      minWidth: "180px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "All Departments"
@@ -89445,6 +89590,15 @@ function StudentManagement() {
     value: statusFilter,
     onChange: function onChange(e) {
       return setStatusFilter(e.target.value);
+    },
+    style: {
+      background: "#23234a",
+      color: "#fff",
+      border: "none",
+      borderRadius: "8px",
+      padding: "10px 14px",
+      fontSize: "14px",
+      minWidth: "140px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "ALL"
@@ -89452,7 +89606,7 @@ function StudentManagement() {
     value: "ACTIVE"
   }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "OFFLINE"
-  }, "Offline"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  }, "Offline")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "students-grid"
   }, filteredStudents.map(function (student) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {

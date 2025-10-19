@@ -12410,9 +12410,148 @@ textarea.form-control-lg {
   color: #ffffff;
   font-family: "Nunito", sans-serif;
 }
+.dashboard-container .main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  margin-left: 0 !important;
+  /* Place pills (GPA + Year) to the right and style them */
+  /* KPI cards row */
+  /* Panels (charts) */
+  /* 2nd section (Growth Trends + Faculty Distribution) */
+  /* Right panel width fix */
+  /* 3rd section (Recent Activity + Student Enrollment) */
+  /* Activity list tiles */
+}
+.dashboard-container .main-content .top-bar + div {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 6px 0 18px !important;
+}
+.dashboard-container .main-content .top-bar + div span:first-child {
+  background: rgba(34, 197, 94, 0.14) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+  color: #34d399 !important;
+  border-radius: 999px !important;
+  padding: 6px 12px !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+}
+.dashboard-container .main-content .top-bar + div span:last-child {
+  background: rgba(168, 85, 247, 0.12) !important;
+  border: 1px solid rgba(168, 85, 247, 0.35) !important;
+  color: #c084fc !important;
+  border-radius: 999px !important;
+  padding: 6px 12px !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+}
+.dashboard-container .main-content .stats-cards {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 16px !important;
+  margin-top: 14px !important;
+  margin-bottom: 22px !important;
+}
+.dashboard-container .main-content .stats-cards .card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25) !important;
+  align-items: flex-start !important;
+  min-width: 220px !important;
+}
+.dashboard-container .main-content .stats-cards .card .card-icon {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #0b1020 !important;
+  font-size: 20px !important;
+  margin-bottom: 8px !important;
+  background: #a855f7 !important; /* default */
+}
+.dashboard-container .main-content .stats-cards .card:nth-child(1) .card-icon {
+  background: #a855f7 !important;
+}
+.dashboard-container .main-content .stats-cards .card:nth-child(2) .card-icon {
+  background: #22d3ee !important;
+}
+.dashboard-container .main-content .stats-cards .card:nth-child(3) .card-icon {
+  background: #6366f1 !important;
+}
+.dashboard-container .main-content .stats-cards .card:nth-child(4) .card-icon {
+  background: #f59e0b !important;
+}
+.dashboard-container .main-content .stats-cards .card h3, .dashboard-container .main-content .stats-cards .card .h3 {
+  color: #b8c0d0 !important;
+  font-size: 13px !important;
+  margin: 0 0 2px 0 !important;
+  font-weight: 600 !important;
+}
+.dashboard-container .main-content .stats-cards .card p {
+  color: #fff !important;
+  font-weight: 800 !important;
+  font-size: 28px !important;
+  line-height: 1.1 !important;
+  margin: 4px 0 2px 0 !important;
+}
+.dashboard-container .main-content .stats-cards .card .growth {
+  color: #22c55e !important;
+  font-size: 12.5px !important;
+}
+.dashboard-container .main-content section:nth-of-type(2) > div {
+  background: #121229 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25) !important;
+}
+.dashboard-container .main-content section:nth-of-type(2) h3, .dashboard-container .main-content section:nth-of-type(2) .h3 {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 0 8px 0 !important;
+}
+.dashboard-container .main-content section:nth-of-type(2) p {
+  color: #9aa3b2 !important;
+  font-size: 12.5px !important;
+  margin: 0 0 12px 0 !important;
+}
+.dashboard-container .main-content section:nth-of-type(2) .distribution-chart {
+  width: 420px !important;
+  max-width: 100% !important;
+}
+.dashboard-container .main-content .distribution-chart .chart-legend .legend-item {
+  font-size: 12px !important;
+}
+.dashboard-container .main-content section:nth-of-type(3) > div {
+  background: #121229 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25) !important;
+}
+.dashboard-container .main-content section:nth-of-type(3) h3, .dashboard-container .main-content section:nth-of-type(3) .h3 {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  margin: 0 0 12px 0 !important;
+}
+.dashboard-container .main-content section:nth-of-type(3) > div .activity-item,
+.dashboard-container .main-content section:nth-of-type(3) > div > div > div {
+  background: #1a1a33 !important;
+  border-radius: 10px !important;
+}
 
 .sidebar {
   width: 250px;
+  flex: 0 0 250px;
   background-color: #0f0f1a;
   padding: 20px;
   display: flex;
@@ -12483,12 +12622,6 @@ textarea.form-control-lg {
 }
 .sidebar .logout-btn:hover {
   background-color: #dc2626;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
 }
 
 .top-bar {
@@ -12649,6 +12782,7 @@ textarea.form-control-lg {
   background-color: #9333ea;
 }
 
+/* Keep current sidebar active style */
 .sidebar-menu .active {
   background: #a855f7;
   color: #fff !important;

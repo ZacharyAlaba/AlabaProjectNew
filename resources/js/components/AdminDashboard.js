@@ -334,7 +334,7 @@ export default function AdminDashboard() {
                     </button>
                 </aside>
             )}
-            <main className="main-content" style={{ marginLeft: sidebarOpen ? "250px" : "0", transition: "margin-left 0.3s" }}>
+            <main className="main-content">
                 {/* Add a button to reopen the sidebar when closed */}
                 {!sidebarOpen && (
                     <button
@@ -375,12 +375,7 @@ export default function AdminDashboard() {
                             </span>
                         </div>
                         {/* Stats Cards */}
-                        <section className="stats-cards" style={{
-                            display: "flex",
-                            gap: "24px",
-                            marginBottom: "32px",
-                            justifyContent: "center"
-                        }}>
+                        <section className="stats-cards" style={{ marginBottom: "24px", width: "100%" }}>
                             <div className="card student-card" style={{
                                 background: "#181826",
                                 borderRadius: "16px",
@@ -455,16 +450,10 @@ export default function AdminDashboard() {
                             </div>
                         </section>
                         {/* Growth Trends & Faculty Distribution */}
-                        <section style={{ display: "flex", gap: "24px", marginBottom: "32px" }}>
-                            <div style={{
-                                flex: 1,
-                                background: "#181826",
-                                borderRadius: "16px",
-                                padding: "24px",
-                                marginRight: "12px"
-                            }}>
+                        <section className="panels-grid" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "18px", marginBottom: "24px", width: "100%" }}>
+                            <div style={{ background: "#181826", borderRadius: "16px", padding: "24px" }}>
                                 <h3 style={{ color: "#fff", marginBottom: "12px" }}>Growth Trends</h3>
-                                <div style={{ width: "100%", height: "400px" }}>
+                                <div style={{ width: "100%", height: "360px" }}>
                                     <Line
                                         data={growthTrends}
                                         options={{
@@ -481,48 +470,31 @@ export default function AdminDashboard() {
                                     />
                                 </div>
                             </div>
-                            <div className="chart distribution-chart" style={{
-                                width: "320px",
-                                background: "#181826",
-                                borderRadius: "16px",
-                                padding: "24px",
-                                boxSizing: "border-box",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }}>
+                            <div className="chart distribution-chart" style={{ background: "#181826", borderRadius: "16px", padding: "24px", display: "flex", flexDirection: "column" }}>
                                 <h3 style={{ marginBottom: "8px", color: "#fff" }}>Faculty Distribution</h3>
                                 <p style={{ marginBottom: "16px", color: "#fff" }}>By Department</p>
-                                <div style={{ width: "180px", height: "180px" }}>
+                                <div className="doughnut-wrap" style={{ width: "100%", height: "300px" }}>
                                     <Doughnut
                                         data={doughnutChartData}
                                         options={{
-                                            responsive: false,
+                                            responsive: true,
                                             maintainAspectRatio: false,
                                             plugins: {
-                                                legend: {
-                                                    position: "bottom",
-                                                    labels: {
-                                                        color: "#fff",
-                                                        font: { size: 14 }
-                                                    }
-                                                }
-                                            }
-                                        }}
-                                        width={180}
-                                        height={180}
-                                    />
-                                </div>
-                                <div className="chart-legend" style={{ marginTop: "12px" }}>
-                                    {Object.keys(facultyDistribution).map((dept, idx) => (
-                                        <span key={dept} className="legend-item" style={{ color: doughnutChartData.datasets[0].backgroundColor[idx], marginLeft: idx > 0 ? "16px" : "0" }}>
-                                            <i className="fas fa-circle"></i> {dept}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </section>
+                                                legend: { position: "bottom", labels: { color: "#fff", font: { size: 14 } } }
+                                            },
+                                            cutout: "60%"
+                                         }}
+                                     />
+                                 </div>
+                                 <div className="chart-legend" style={{ marginTop: "12px" }}>
+                                     {Object.keys(facultyDistribution).map((dept, idx) => (
+                                         <span key={dept} className="legend-item" style={{ color: doughnutChartData.datasets[0].backgroundColor[idx], marginLeft: idx > 0 ? "16px" : "0" }}>
+                                             <i className="fas fa-circle"></i> {dept}
+                                         </span>
+                                     ))}
+                                 </div>
+                             </div>
+                         </section>
                         {/* Recent Activity & Student Enrollment */}
                         <section style={{ display: "flex", gap: "24px" }}>
                             {/* Recent Activity */}

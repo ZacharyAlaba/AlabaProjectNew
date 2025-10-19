@@ -44,6 +44,8 @@ export default function FacultyManagement() {
     const [editFaculty, setEditFaculty] = useState(null);
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
     const [statusFilter, setStatusFilter] = useState("ALL");
+    // NEW: search query
+    const [searchQuery, setSearchQuery] = useState("");
     const profile = getProfile();
     const menuRef = useRef(null);
 
@@ -106,11 +108,19 @@ export default function FacultyManagement() {
         setEditFaculty(null);
     };
 
-    // Filter faculty by status and department
-    const filteredFaculty = faculty.filter(f =>
-        (departmentFilter === "All Departments" || f.department === departmentFilter) &&
-        (statusFilter === "ALL" || f.status === statusFilter)
-    );
+    // Filter faculty by status, department, and search
+    const filteredFaculty = faculty.filter(f => {
+        const deptMatch = (departmentFilter === "All Departments" || f.department === departmentFilter);
+        const statusMatch = (statusFilter === "ALL" || f.status === statusFilter);
+        // NEW: search across name, email, department, faculty_id
+        const q = (searchQuery || "").trim().toLowerCase();
+        const searchMatch =
+            q.length === 0 ||
+            [f.name, f.email, f.department, f.faculty_id]
+                .filter(Boolean)
+                .some(v => String(v).toLowerCase().includes(q));
+        return deptMatch && statusMatch && searchMatch;
+    });
 
     return (
         <div className="faculty-management-content">
@@ -138,20 +148,83 @@ export default function FacultyManagement() {
                     + Add Faculty
                 </button>
             </section>
-            <section className="filters">
-                <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)}>
-                    <option value="All Departments">All Departments</option>
-                    {departments.map(dep => (
-                        <option key={dep} value={dep}>{dep}</option>
-                    ))}
-                </select>
-                {/* Status Filter */}
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                    <option value="ALL">All Status</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="OFFLINE">Offline</option>
-                </select>
+
+            {/* NEW: Search + Department + Status (single row) */}
+            <section className="search-and-filter-row" style={{ marginTop: "12px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+                    {/* Search box (flex:1) */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            flex: 1,
+                            background: "#23234a",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: "12px",
+                            padding: "10px 14px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+                        }}
+                    >
+                        <i className="fas fa-search" style={{ color: "#a3a3a3", fontSize: "14px" }} aria-hidden="true"></i>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search faculty by name, email, or department..."
+                            aria-label="Search faculty"
+                            style={{
+                                flex: 1,
+                                background: "transparent",
+                                border: "none",
+                                outline: "none",
+                                color: "#fff",
+                                fontSize: "14px"
+                            }}
+                        />
+                    </div>
+
+                    {/* All Departments */}
+                    <select
+                        value={departmentFilter}
+                        onChange={e => setDepartmentFilter(e.target.value)}
+                        style={{
+                            background: "#23234a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "10px 14px",
+                            fontSize: "14px",
+                            minWidth: "180px"
+                        }}
+                    >
+                        <option value="All Departments">All Departments</option>
+                        {departments.map(dep => (
+                            <option key={dep} value={dep}>{dep}</option>
+                        ))}
+                    </select>
+
+                    {/* All Status (moved beside departments) */}
+                    <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                        style={{
+                            background: "#23234a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "10px 14px",
+                            fontSize: "14px",
+                            minWidth: "140px"
+                        }}
+                    >
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="OFFLINE">Offline</option>
+                    </select>
+                </div>
             </section>
+
             <section className="students-grid">
                 {filteredFaculty.map((fac) => (
                     <div className="student-card" key={fac.id} style={{ position: "relative" }}>

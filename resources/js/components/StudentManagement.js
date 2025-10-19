@@ -58,9 +58,15 @@ export default function StudentManagement() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [editStudent, setEditStudent] = useState(null);
+
+    // filters
     const [filter, setFilter] = useState("All Courses");
     const [departmentFilter, setDepartmentFilter] = useState("All Departments");
     const [statusFilter, setStatusFilter] = useState("ALL");
+
+    // NEW: search query
+    const [searchQuery, setSearchQuery] = useState("");
+
     const [departments, setDepartments] = useState(getDepartments());
     const [courses, setCourses] = useState(getCourses());
     const [academicYears, setAcademicYears] = useState(getAcademicYears());
@@ -136,7 +142,16 @@ export default function StudentManagement() {
             (student.department && student.department.toLowerCase().includes(departmentFilter.toLowerCase()));
         const statusMatch =
             statusFilter === "ALL" || student.status === statusFilter;
-        return courseMatch && deptMatch && statusMatch;
+
+        // NEW: search match (name, email, student_id)
+        const q = (searchQuery || "").trim().toLowerCase();
+        const searchMatch =
+            q.length === 0 ||
+            [student.name, student.email, student.student_id]
+                .filter(Boolean)
+                .some(v => String(v).toLowerCase().includes(q));
+
+        return courseMatch && deptMatch && statusMatch && searchMatch;
     });
 
     return (
@@ -144,6 +159,7 @@ export default function StudentManagement() {
             <header className="top-bar" style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "18px" }}>
                 <ProfileWidget profile={profile} />
             </header>
+
             <section className="dashboard-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                     <h2>Student Management</h2>
@@ -165,26 +181,103 @@ export default function StudentManagement() {
                     + Add Student
                 </button>
             </section>
-            <section className="filters">
-                <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-                    <option value="All Courses">All Courses</option>
-                    {courses.map(course => (
-                        <option key={course} value={course}>{course}</option>
-                    ))}
-                </select>
-                <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
-                    <option value="All Departments">All Departments</option>
-                    {departments.map(dep => (
-                        <option key={dep} value={dep}>{dep}</option>
-                    ))}
-                </select>
-                {/* Status Filter */}
-                <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                    <option value="ALL">All Status</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="OFFLINE">Offline</option>
-                </select>
+
+            {/* Search + filters in one row (like Faculty) */}
+            <section className="search-and-filter-row" style={{ marginTop: "12px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+                    {/* Search box (flex:1) */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            flex: 1,
+                            background: "#23234a",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: "12px",
+                            padding: "10px 14px",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+                        }}
+                    >
+                        <i className="fas fa-search" style={{ color: "#a3a3a3", fontSize: "14px" }} aria-hidden="true"></i>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search students by name, email, or student ID..."
+                            aria-label="Search students"
+                            style={{
+                                flex: 1,
+                                background: "transparent",
+                                border: "none",
+                                outline: "none",
+                                color: "#fff",
+                                fontSize: "14px"
+                            }}
+                        />
+                    </div>
+
+                    {/* All Courses */}
+                    <select
+                        value={filter}
+                        onChange={e => setFilter(e.target.value)}
+                        style={{
+                            background: "#23234a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "10px 14px",
+                            fontSize: "14px",
+                            minWidth: "180px"
+                        }}
+                    >
+                        <option value="All Courses">All Courses</option>
+                        {courses.map(course => (
+                            <option key={course} value={course}>{course}</option>
+                        ))}
+                    </select>
+
+                    {/* All Departments */}
+                    <select
+                        value={departmentFilter}
+                        onChange={e => setDepartmentFilter(e.target.value)}
+                        style={{
+                            background: "#23234a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "10px 14px",
+                            fontSize: "14px",
+                            minWidth: "180px"
+                        }}
+                    >
+                        <option value="All Departments">All Departments</option>
+                        {departments.map(dep => (
+                            <option key={dep} value={dep}>{dep}</option>
+                        ))}
+                    </select>
+
+                    {/* All Status */}
+                    <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                        style={{
+                            background: "#23234a",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "8px",
+                            padding: "10px 14px",
+                            fontSize: "14px",
+                            minWidth: "140px"
+                        }}
+                    >
+                        <option value="ALL">All Status</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="OFFLINE">Offline</option>
+                    </select>
+                </div>
             </section>
+
             <section className="students-grid">
                 {filteredStudents.map((student) => (
                     <div className="student-card" key={student.student_id} style={{ position: "relative" }}>
