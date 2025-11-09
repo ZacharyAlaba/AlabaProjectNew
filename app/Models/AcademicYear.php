@@ -9,5 +9,10 @@ class AcademicYear extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'status', 'start', 'end'];
+    protected $fillable = ['name','status','start','end'];
+
+    // Allow /api/academic-years/{name}
+    public function getRouteKeyName(): string {
+        return 'name';
+    }
 }

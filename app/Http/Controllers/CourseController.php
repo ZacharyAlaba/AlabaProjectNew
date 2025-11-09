@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Http\Request;
 
@@ -15,7 +14,7 @@ class CourseController extends Controller
      */
     public function index()
     {
-        return Course::with('department:id,name')->orderBy('code')->get();
+        return Course::orderBy('name')->get();
     }
 
     /**
@@ -27,61 +26,52 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'=>'required|string',
-            'code'=>'required|string|unique:courses,code',
-            'department_id'=>'required|exists:departments,id',
-            'credits'=>'nullable|integer|min:0',
-            'duration'=>'nullable|integer|min:1',
-            'status'=>'in:Active,Archived'
+            'name' => 'required|string',
+            'code' => 'required|string|unique:courses,code',
+            'department' => 'required|string',
+            'credits' => 'required|integer',
+            'duration' => 'required|integer',
+            'status' => 'required|string',
         ]);
-        return Course::create($data)->load('department:id,name');
+        return Course::create($data);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Course $course)
     {
-        //
+        return $course;
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Course $course)
     {
         $data = $request->validate([
-            'name'=>'sometimes|required|string',
-            'department_id'=>'sometimes|required|exists:departments,id',
-            'credits'=>'nullable|integer|min:0',
-            'duration'=>'nullable|integer|min:1',
-            'status'=>'in:Active,Archived'
+            'name' => 'sometimes|string',
+            'department' => 'sometimes|string',
+            'credits' => 'sometimes|integer',
+            'duration' => 'sometimes|integer',
+            'status' => 'sometimes|string',
+            'code' => 'sometimes|string|unique:courses,code,' . $course->id,
         ]);
         $course->update($data);
-        return $course->fresh()->load('department:id,name');
-    }
-
-    public function archive(Course $course) {
-        $course->update(['status'=>'Archived']);
-        return response()->json(['ok'=>true]);
-    }
-
-    public function activate(Course $course) {
-        $course->update(['status'=>'Active']);
-        return response()->json(['ok'=>true]);
+        return $course;
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  \App\Models\Course  $course
      * @return \Illuminate\Http\Response
      */
     public function destroy(Course $course)

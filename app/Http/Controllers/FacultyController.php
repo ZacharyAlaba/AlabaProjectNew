@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Faculty;
 
@@ -15,7 +14,20 @@ class FacultyController extends Controller
      */
     public function index()
     {
-        return Faculty::all();
+        // Map academic_year -> academicYear for frontend convenience
+        return Faculty::all()->map(fn($f) => [
+            'id' => $f->id,
+            'faculty_id' => $f->faculty_id,
+            'name' => $f->name,
+            'position' => $f->position,
+            'department' => $f->department,
+            'email' => $f->email,
+            'phone' => $f->phone,
+            'joined' => $f->joined,
+            'specialization' => $f->specialization,
+            'status' => $f->status,
+            'academicYear' => $f->academic_year,
+        ]);
     }
 
     /**
@@ -42,20 +54,43 @@ class FacultyController extends Controller
             'department' => 'required|string',
             'email' => 'required|email',
             'phone' => 'required|string',
-            'joined' => 'required|date',
             'specialization' => 'required|string',
             'status' => 'required|string',
+            'academic_year' => 'nullable|string', // now accepted
+            'joined' => 'nullable|date'            // made optional
         ]);
 
         // Generate unique faculty_id
         do {
             $faculty_id = 'FAC' . mt_rand(100000, 999999);
-        } while (\App\Models\Faculty::where('faculty_id', $faculty_id)->exists());
+        } while (Faculty::where('faculty_id', $faculty_id)->exists());
 
         $validated['faculty_id'] = $faculty_id;
 
+        // If joined missing but academic_year provided you could set a default date
+        if (empty($validated['joined']) && !empty($validated['academic_year'])) {
+            // simple default: first day of Sept of first year segment
+            $parts = explode('-', $validated['academic_year']);
+            if (count($parts) === 2) {
+                $validated['joined'] = $parts[0] . '-09-01';
+            }
+        }
+
         $faculty = Faculty::create($validated);
-        return response()->json($faculty, 201);
+
+        return response()->json([
+            'id' => $faculty->id,
+            'faculty_id' => $faculty->faculty_id,
+            'name' => $faculty->name,
+            'position' => $faculty->position,
+            'department' => $faculty->department,
+            'email' => $faculty->email,
+            'phone' => $faculty->phone,
+            'joined' => $faculty->joined,
+            'specialization' => $faculty->specialization,
+            'status' => $faculty->status,
+            'academicYear' => $faculty->academic_year,
+        ], 201);
     }
 
     /**
@@ -90,8 +125,31 @@ class FacultyController extends Controller
     public function update(Request $request, $id)
     {
         $faculty = Faculty::findOrFail($id);
-        $faculty->update($request->all());
-        return response()->json($faculty);
+        $data = $request->validate([
+            'name' => 'sometimes|string',
+            'position' => 'sometimes|string',
+            'department' => 'sometimes|string',
+            'email' => 'sometimes|email',
+            'phone' => 'sometimes|string',
+            'specialization' => 'sometimes|string',
+            'status' => 'sometimes|string',
+            'academic_year' => 'sometimes|string',
+            'joined' => 'sometimes|date'
+        ]);
+        $faculty->update($data);
+        return response()->json([
+            'id' => $faculty->id,
+            'faculty_id' => $faculty->faculty_id,
+            'name' => $faculty->name,
+            'position' => $faculty->position,
+            'department' => $faculty->department,
+            'email' => $faculty->email,
+            'phone' => $faculty->phone,
+            'joined' => $faculty->joined,
+            'specialization' => $faculty->specialization,
+            'status' => $faculty->status,
+            'academicYear' => $faculty->academic_year,
+        ]);
     }
 
     /**

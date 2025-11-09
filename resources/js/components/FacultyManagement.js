@@ -52,6 +52,16 @@ function inferAcademicYear(joinedDate, years) {
     return "";
 }
 
+// Add rank normalizer (like student status)
+function normalizeRank(r) {
+    if (!r) return "";
+    const up = String(r).trim().toUpperCase();
+    if (up.startsWith("PROFESSOR")) return "Professor";
+    if (up.startsWith("ASSOC")) return "Associate Professor";
+    if (up.startsWith("ASSIST")) return "Assistant Professor";
+    return r;
+}
+
 export default function FacultyManagement() {
     const [faculty, setFaculty] = useState([]);
     const [menuOpenId, setMenuOpenId] = useState(null);
@@ -81,20 +91,30 @@ export default function FacultyManagement() {
     useEffect(() => {
         axios.get("/api/faculty").then(res => {
             const data = Array.isArray(res.data) ? res.data : [];
-            // Map joined -> academicYear if missing
             const mapped = data.map(f => ({
                 ...f,
                 academicYear: f.academicYear || inferAcademicYear(f.joined, academicYears),
-                rank: f.rank || f.position
+                rank: normalizeRank(f.rank || f.position),           // ensure rank
+                position: normalizeRank(f.position)                  // keep position normalized too
             }));
             setFaculty(mapped);
             localStorage.setItem("faculty", JSON.stringify(mapped));
         });
     }, [academicYears]); // re-run if academic years load later
 
+    // Load departments and academic years from API
     useEffect(() => {
-        setDepartments(getDepartments());
-        setAcademicYears(getAcademicYears()); // keep in sync
+        axios.get("/api/departments").then(r => {
+            const list = (r.data || []).filter(d => d.status === "Active").map(d => d.name);
+            setDepartments(list);
+            localStorage.setItem("departments", JSON.stringify(r.data || []));
+        });
+        axios.get("/api/academic-years").then(r => {
+            // keep full objects for inferAcademicYear()
+            const years = (r.data || []).filter(y => y.status !== "Archived");
+            setAcademicYears(years);
+            localStorage.setItem("academicYears", JSON.stringify(years));
+        });
     }, []);
 
     const handleChange = (e) => {
@@ -103,17 +123,32 @@ export default function FacultyManagement() {
 
     // Add faculty handler (API)
     const handleAddFaculty = async (newFaculty) => {
-        newFaculty.rank = newFaculty.position;
-        // Keep a joined placeholder (first day of academic year) for backend compatibility
-        const selYear = academicYears.find(y => y.name === newFaculty.academicYear);
-        newFaculty.joined = selYear?.start || ""; // backend may expect joined
-        const res = await axios.post("/api/faculty", newFaculty);
-        const data = { ...res.data, rank: newFaculty.rank, academicYear: newFaculty.academicYear };
-        const updated = [...faculty, data];
-        setFaculty(updated);
-        localStorage.setItem("faculty", JSON.stringify(updated));
-        logActivity("faculty", `New faculty added: ${newFaculty.name} (${newFaculty.department})`);
-        setShowAddModal(false);
+        try {
+            const payload = {
+                name: newFaculty.name,
+                position: normalizeRank(newFaculty.position),
+                department: newFaculty.department,
+                email: newFaculty.email,
+                phone: newFaculty.phone,
+                specialization: newFaculty.specialization,
+                status: newFaculty.status,
+                academic_year: newFaculty.academicYear
+            };
+            const res = await axios.post("/api/faculty", payload, {
+                headers: { "Content-Type": "application/json", "Accept": "application/json" }
+            });
+            const saved = {
+                ...res.data,
+                rank: normalizeRank(res.data.rank || res.data.position),
+                position: normalizeRank(res.data.position),
+                academicYear: newFaculty.academicYear
+            };
+            setFaculty(prev => [...prev, saved]);
+            setShowAddModal(false);
+        } catch (e) {
+            console.error("Add faculty error", e);
+            alert("Failed to add faculty.");
+        }
     };
 
     // Delete faculty handler (API)
@@ -142,13 +177,19 @@ export default function FacultyManagement() {
         const selYear = academicYears.find(y => y.name === editFaculty.academicYear);
         const payload = {
             ...editFaculty,
-            rank: editFaculty.position,
+            position: normalizeRank(editFaculty.position),
+            academic_year: editFaculty.academicYear,
             joined: selYear?.start || editFaculty.joined || ""
         };
         const res = await axios.put(`/api/faculty/${editFaculty.id}`, payload);
         const updated = faculty.map(f =>
             f.id === editFaculty.id
-                ? { ...res.data, rank: payload.rank, academicYear: editFaculty.academicYear }
+                ? {
+                    ...res.data,
+                    rank: normalizeRank(res.data.rank || res.data.position),
+                    position: normalizeRank(res.data.position),
+                    academicYear: editFaculty.academicYear
+                  }
                 : f
         );
         setFaculty(updated);

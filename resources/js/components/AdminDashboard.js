@@ -29,22 +29,6 @@ ChartJS.register(
   LineElement
 );
 
-// Utility functions for live counts
-function getActiveCourses() {
-    const stored = localStorage.getItem("courses");
-    if (stored) {
-        return JSON.parse(stored).filter(c => c.status === "Active").length;
-    }
-    return 0;
-}
-function getActiveDepartments() {
-    const stored = localStorage.getItem("departments");
-    if (stored) {
-        return JSON.parse(stored).filter(d => d.status === "Active").length;
-    }
-    return 0;
-}
-
 // --- Activity Logging ---
 function logActivity(type, desc) {
     const logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
@@ -106,11 +90,19 @@ export default function AdminDashboard() {
     const [faculty, setFaculty] = useState(
         JSON.parse(localStorage.getItem("faculty") || "[]").map(f => ({ ...f, status: normalizeStatus(f.status) }))
     );
+
+    // NEW: hold DB lists for courses and departments
+    const [courses, setCourses] = useState([]);
+    const [departments, setDepartments] = useState([]);
+
     const [facultyDistribution, setFacultyDistribution] = useState({});
     const [studentEnrollment, setStudentEnrollment] = useState({ labels: [], datasets: [] });
     const [growthTrends, setGrowthTrends] = useState({ labels: [], datasets: [] });
-    const [activeCourses, setActiveCourses] = useState(getActiveCourses());
-    const [activeDepartments, setActiveDepartments] = useState(getActiveDepartments());
+
+    // REMOVE these localStorage count states:
+//  const [activeCourses, setActiveCourses] = useState(getActiveCourses());
+//  const [activeDepartments, setActiveDepartments] = useState(getActiveDepartments());
+
     const navigate = useNavigate();
     const location = useLocation();
     const profile = getProfile();
@@ -118,6 +110,10 @@ export default function AdminDashboard() {
     // Only count ACTIVE
     const activeStudents = students.filter(s => s.status === "Active");
     const activeFaculty = faculty.filter(f => f.status === "Active");
+
+    // NEW: derive live counts from API-fetched data
+    const activeCourses = courses.filter(c => c.status === "Active").length;
+    const activeDepartments = departments.filter(d => d.status === "Active").length;
 
     // Calculate average GPA for active students
     const avg_gpa =
@@ -147,18 +143,32 @@ export default function AdminDashboard() {
             setFaculty(list);
             localStorage.setItem("faculty", JSON.stringify(list));
         });
+
+        // NEW: fetch courses and departments from DB
+        axios.get("/api/courses").then(res => {
+            const list = Array.isArray(res.data) ? res.data : [];
+            setCourses(list);
+            // optional: keep a mirror if other parts still read from localStorage
+            localStorage.setItem("courses", JSON.stringify(list));
+        });
+        axios.get("/api/departments").then(res => {
+            const list = Array.isArray(res.data) ? res.data : [];
+            setDepartments(list);
+            // optional: keep a mirror if other parts still read from localStorage
+            localStorage.setItem("departments", JSON.stringify(list));
+        });
     }, []);
 
-    // Live update for courses/departments
-    useEffect(() => {
-        function updateCounts() {
-            setActiveCourses(getActiveCourses());
-            setActiveDepartments(getActiveDepartments());
-        }
-        window.addEventListener("storage", updateCounts);
-        updateCounts();
-        return () => window.removeEventListener("storage", updateCounts);
-    }, []);
+    // REMOVE the storage listener used to recalc counts (no longer needed)
+//  useEffect(() => {
+//      function updateCounts() {
+//          setActiveCourses(getActiveCourses());
+//          setActiveDepartments(getActiveDepartments());
+//      }
+//      window.addEventListener("storage", updateCounts);
+//      updateCounts();
+//      return () => window.removeEventListener("storage", updateCounts);
+//  }, []);
 
     // Calculate faculty distribution by department
     useEffect(() => {

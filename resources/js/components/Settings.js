@@ -1,100 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
 
-// DEPARTMENTS from your image
-const initialDepartments = [
-    { name: "Engineering and Technology", established: 1995, head: "Dr. Robert Smith", faculty: 24, students: 567, status: "Active" },
-    { name: "Nursing", established: 1997, head: "Dr. Jane Doe", faculty: 18, students: 400, status: "Active" },
-    { name: "Accountancy", established: 1998, head: "Prof. John Smith", faculty: 15, students: 350, status: "Active" },
-    { name: "Business Administration", established: 1999, head: "Prof. Sarah Johnson", faculty: 20, students: 500, status: "Active" },
-    { name: "Tourism and Hospitality Management", established: 2000, head: "Dr. Emily Brown", faculty: 12, students: 300, status: "Active" },
-    { name: "Arts and Sciences", established: 2001, head: "Prof. David Wilson", faculty: 14, students: 320, status: "Active" },
-    { name: "Computer Studies", established: 2002, head: "Dr. Alan Turing", faculty: 22, students: 600, status: "Active" },
-    { name: "Criminal Justice Education", established: 2003, head: "Dr. Michael Chen", faculty: 10, students: 200, status: "Active" },
-    { name: "Teacher Education", established: 2004, head: "Dr. Emily Rodriguez", faculty: 16, students: 280, status: "Active" }
-];
+// REMOVE seed/localStorage helpers and calls:
+// const initialDepartments = [...]
+// const initialCourses = [...]
+// const initialAcademicYears = [...]
+// const SEED_FLAG = ...
+// function ensureSeeded() { ... }
+// ensureSeeded();
+// function getInitialDepartments() { ... } etc.
 
-// Example initial courses (link to departments above)
-const initialCourses = [
-    { name: "BSIT", code: "INFORMATION TECHNOLOGY", department: "Computer Studies", credits: 120, duration: 4, status: "Active" },
-    { name: "BSA", code: "ACCOUNTANT", department: "Accountancy", credits: 120, duration: 4, status: "Active" },
-    { name: "BSN", code: "NURSE", department: "Nursing", credits: 120, duration: 4, status: "Active" },
-    { name: "BSBA", code: "BUSINESS", department: "Business Administration", credits: 120, duration: 4, status: "Active" },
-    { name: "BSTM", code: "TYMES", department: "Tourism and Hospitality Management", credits: 120, duration: 4, status: "Active" }
-];
-
-const initialAcademicYears = [
-    { name: "2024-2025", status: "Current", start: "2024-09-01", end: "2025-06-30" },
-    { name: "2025-2026", status: "Planned", start: "2025-09-01", end: "2026-06-30" },
-    { name: "2023-2024", status: "Completed", start: "2023-09-01", end: "2024-06-30" },
-    { name: "2022-2023", status: "Completed", start: "2022-09-01", end: "2023-06-30" },
-    { name: "2021-2022", status: "Completed", start: "2021-09-01", end: "2022-06-30" },
-];
-
-// Seed once, then never overwrite user's data
-const SEED_FLAG = "sfms:seed:v1";
-function ensureSeeded() {
-    if (!localStorage.getItem(SEED_FLAG)) {
-        if (!localStorage.getItem("departments")) {
-            localStorage.setItem("departments", JSON.stringify(initialDepartments));
-        }
-        if (!localStorage.getItem("courses")) {
-            localStorage.setItem("courses", JSON.stringify(initialCourses));
-        }
-        if (!localStorage.getItem("academicYears")) {
-            localStorage.setItem("academicYears", JSON.stringify(initialAcademicYears));
-        }
-        localStorage.setItem(SEED_FLAG, "1");
-    }
+// ADD a tiny API client
+const apiBase = "/api";
+async function json(res) {
+    if (!res.ok) throw new Error((await res.text()) || res.statusText);
+    return res.status === 204 ? null : res.json();
 }
-// Run immediately so getters below always read from LS
-ensureSeeded();
+const settingsApi = {
+    // departments
+    listDepartments: () => fetch(`${apiBase}/departments`).then(json),
+    createDepartment: (dep) => fetch(`${apiBase}/departments`, {
+        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(dep)
+    }).then(json),
+    updateDepartment: (name, dep) => fetch(`${apiBase}/departments/${encodeURIComponent(name)}`, {
+        method: "PUT", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(dep)
+    }).then(json),
+    deleteDepartment: (name) => fetch(`${apiBase}/departments/${encodeURIComponent(name)}`, { method: "DELETE" }).then(json),
 
-// Read ONLY from localStorage; no more fallbacks to samples
-function getInitialDepartments() {
-    const stored = localStorage.getItem("departments");
-    return stored ? JSON.parse(stored) : [];
-}
-function getInitialCourses() {
-    const stored = localStorage.getItem("courses");
-    return stored ? JSON.parse(stored) : [];
-}
-function getInitialAcademicYears() {
-    const stored = localStorage.getItem("academicYears");
-    return stored ? JSON.parse(stored) : [];
-}
+    // courses
+    listCourses: () => fetch(`${apiBase}/courses`).then(json),
+    createCourse: (c) => fetch(`${apiBase}/courses`, {
+        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(c)
+    }).then(json),
+    updateCourse: (code, c) => fetch(`${apiBase}/courses/${encodeURIComponent(code)}`, {
+        method: "PUT", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(c)
+    }).then(json),
+    deleteCourse: (code) => fetch(`${apiBase}/courses/${encodeURIComponent(code)}`, { method: "DELETE" }).then(json),
 
-// Map helpers (API -> UI shape)
-const mapDepartmentsAPI = (arr=[]) => arr.map(x => ({
-  id: x.id, name: x.name,
-  established: x.established ?? "",
-  head: x.head ?? "",
-  faculty: x.faculty_count ?? 0,
-  students: x.student_count ?? 0,
-  status: x.status || "Active"
-}));
-
-const mapCoursesAPI = (arr=[]) => arr.map(x => ({
-  id: x.id, name: x.name, code: x.code,
-  department: x.department?.name || x.department || "", // string only
-  credits: x.credits ?? 0,
-  duration: x.duration ?? 4,
-  status: x.status || "Active"
-}));
-
-const mapYearsAPI = (arr=[]) => arr.map(x => ({
-  id: x.id, name: x.name,
-  status: x.status || "Planned",
-  start: x.start || "",
-  end: x.end || ""
-}));
+    // academic years
+    listYears: () => fetch(`${apiBase}/academic-years`).then(json),
+    createYear: (y) => fetch(`${apiBase}/academic-years`, {
+        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(y)
+    }).then(json),
+    updateYear: (name, y) => fetch(`${apiBase}/academic-years/${encodeURIComponent(name)}`, {
+        method: "PUT", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(y)
+    }).then(json),
+    deleteYear: (name) => fetch(`${apiBase}/academic-years/${encodeURIComponent(name)}`, { method: "DELETE" }).then(json),
+};
 
 export default function Settings() {
     const [tab, setTab] = useState("Courses");
-    const [departments, setDepartments] = useState(getInitialDepartments());
-    const [courses, setCourses] = useState(getInitialCourses());
-    const [academicYears, setAcademicYears] = useState(getInitialAcademicYears());
+    const [departments, setDepartments] = useState([]);   // was getInitialDepartments()
+    const [courses, setCourses] = useState([]);           // was getInitialCourses()
+    const [academicYears, setAcademicYears] = useState([]); // was getInitialAcademicYears()
 
     // Modal states
     const [showAddCourseModal, setShowAddCourseModal] = useState(false);
@@ -111,103 +76,106 @@ export default function Settings() {
 
     const [menuOpen, setMenuOpen] = useState({});
 
-    // Persist to localStorage
+    // LOAD from API on mount
     React.useEffect(() => {
-        localStorage.setItem("departments", JSON.stringify(departments));
-    }, [departments]);
-    React.useEffect(() => {
-        localStorage.setItem("courses", JSON.stringify(courses));
-    }, [courses]);
-    React.useEffect(() => {
-        localStorage.setItem("academicYears", JSON.stringify(academicYears));
-    }, [academicYears]);
-
-    // Fetch from API on mount
-    useEffect(() => {
-      (async () => {
-        try {
-          const [dRes, cRes, yRes] = await Promise.all([
-            fetch('/api/departments'),
-            fetch('/api/courses'),
-            fetch('/api/academic-years')
-          ]);
-          const [d, c, y] = await Promise.all([dRes.json(), cRes.json(), yRes.json()]);
-          setDepartments(mapDepartmentsAPI(d));
-          setCourses(mapCoursesAPI(c));
-          setAcademicYears(mapYearsAPI(y));
-        } catch (e) { console.error(e); }
-      })();
+        (async () => {
+            try {
+                const [deps, crs, yrs] = await Promise.all([
+                    settingsApi.listDepartments(),
+                    settingsApi.listCourses(),
+                    settingsApi.listYears()
+                ]);
+                setDepartments(deps);
+                setCourses(crs);
+                setAcademicYears(yrs);
+            } catch (e) {
+                console.error(e);
+                alert("Failed to load settings from server.");
+            }
+        })();
     }, []);
 
-    // Archive/Activate handlers
-    const handleArchiveCourse = (code) => {
-        setCourses(courses.map(c => c.code === code ? { ...c, status: "Archived" } : c));
+    // REMOVE the three localStorage persist effects
+    // React.useEffect(() => { localStorage.setItem("departments", JSON.stringify(departments)); }, [departments]);
+    // React.useEffect(() => { localStorage.setItem("courses", JSON.stringify(courses)); }, [courses]);
+    // React.useEffect(() => { localStorage.setItem("academicYears", JSON.stringify(academicYears)); }, [academicYears]);
+
+    // UPDATE handlers to call API
+    const handleArchiveCourse = async (code) => {
+        const updated = await settingsApi.updateCourse(code, { status: "Archived" });
+        setCourses(courses.map(c => c.code === code ? updated : c));
     };
-    const handleActivateCourse = (code) => {
-        setCourses(courses.map(c => c.code === code ? { ...c, status: "Active" } : c));
+    const handleActivateCourse = async (code) => {
+        const updated = await settingsApi.updateCourse(code, { status: "Active" });
+        setCourses(courses.map(c => c.code === code ? updated : c));
     };
-    const handleArchiveDepartment = (name) => {
-        setDepartments(departments.map(d => d.name === name ? { ...d, status: "Archived" } : d));
+    const handleArchiveDepartment = async (name) => {
+        const updated = await settingsApi.updateDepartment(name, { status: "Archived" });
+        setDepartments(departments.map(d => d.name === name ? updated : d));
     };
-    const handleActivateDepartment = (name) => {
-        setDepartments(departments.map(d => d.name === name ? { ...d, status: "Active" } : d));
+    const handleActivateDepartment = async (name) => {
+        const updated = await settingsApi.updateDepartment(name, { status: "Active" });
+        setDepartments(departments.map(d => d.name === name ? updated : d));
     };
-    const handleArchiveYear = (name) => {
-        setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Archived" } : y));
+    const handleArchiveYear = async (name) => {
+        const updated = await settingsApi.updateYear(name, { status: "Archived" });
+        setAcademicYears(academicYears.map(y => y.name === name ? updated : y));
     };
-    const handleActivateYear = (name) => {
-        setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Planned" } : y));
+    const handleActivateYear = async (name) => {
+        const updated = await settingsApi.updateYear(name, { status: "Planned" });
+        setAcademicYears(academicYears.map(y => y.name === name ? updated : y));
     };
 
-    // --- DELETE HANDLERS (hard delete is permanent) ---
-    const handleDeleteDepartment = (name) => {
-        if (window.confirm(`Delete department "${name}" permanently? This cannot be undone.`)) {
-            const updated = departments.filter(d => d.name !== name);
-            setDepartments(updated); // persisted by useEffect
-        }
+    const handleDeleteDepartment = async (name) => {
+        if (!window.confirm(`Delete department "${name}" permanently? This cannot be undone.`)) return;
+        await settingsApi.deleteDepartment(name);
+        setDepartments(departments.filter(d => d.name !== name));
     };
-    const handleDeleteCourse = (code) => {
-        if (window.confirm(`Delete course "${code}" permanently? This cannot be undone.`)) {
-            const updated = courses.filter(c => c.code !== code);
-            setCourses(updated); // persisted by useEffect
-        }
+    const handleDeleteCourse = async (code) => {
+        if (!window.confirm(`Delete course "${code}" permanently? This cannot be undone.`)) return;
+        await settingsApi.deleteCourse(code);
+        setCourses(courses.filter(c => c.code !== code));
     };
-    const handleDeleteYear = (name) => {
-        if (window.confirm(`Delete academic year "${name}" permanently? This cannot be undone.`)) {
-            const updated = academicYears.filter(y => y.name !== name);
-            setAcademicYears(updated); // persisted by useEffect
-        }
+    const handleDeleteYear = async (name) => {
+        if (!window.confirm(`Delete academic year "${name}" permanently? This cannot be undone.`)) return;
+        await settingsApi.deleteYear(name);
+        setAcademicYears(academicYears.filter(y => y.name !== name));
     };
 
-    // Add/Edit handlers (prevent duplicate course code)
-    const handleAddCourse = (course) => {
+    const handleAddCourse = async (course) => {
         if (courses.some(c => c.code === course.code)) {
             alert(`Course code "${course.code}" already exists.`);
             return;
         }
-        setCourses([...courses, course]);
+        const saved = await settingsApi.createCourse(course);
+        setCourses([...courses, saved]);
         setShowAddCourseModal(false);
     };
-    const handleEditCourse = (course) => {
-        setCourses(courses.map(c => c.code === course.code ? course : c));
+    const handleEditCourse = async (course) => {
+        const saved = await settingsApi.updateCourse(course.code, course);
+        setCourses(courses.map(c => c.code === course.code ? saved : c));
         setSelectedCourse(null);
         setShowEditCourseModal(false);
     };
-    const handleAddDepartment = (dep) => {
-        setDepartments([...departments, dep]);
+    const handleAddDepartment = async (dep) => {
+        const saved = await settingsApi.createDepartment(dep);
+        setDepartments([...departments, saved]);
         setShowAddDepartmentModal(false);
     };
-    const handleEditDepartment = (dep) => {
-        setDepartments(departments.map(d => d.name === dep.name ? dep : d));
+    const handleEditDepartment = async (dep) => {
+        const saved = await settingsApi.updateDepartment(dep.name, dep);
+        setDepartments(departments.map(d => d.name === dep.name ? saved : d));
         setSelectedDepartment(null);
         setShowEditDepartmentModal(false);
     };
-    const handleAddYear = (year) => {
-        setAcademicYears([...academicYears, year]);
+    const handleAddYear = async (year) => {
+        const saved = await settingsApi.createYear(year);
+        setAcademicYears([...academicYears, saved]);
         setShowAddYearModal(false);
     };
-    const handleEditYear = (year) => {
-        setAcademicYears(academicYears.map(y => y.name === year.name ? year : y));
+    const handleEditYear = async (year) => {
+        const saved = await settingsApi.updateYear(year.name, year);
+        setAcademicYears(academicYears.map(y => y.name === year.name ? saved : y));
         setSelectedYear(null);
         setShowEditYearModal(false);
     };
@@ -337,7 +305,7 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {typeof course.department === "string" ? course.department : (course.department?.name || "")}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
                             </div>

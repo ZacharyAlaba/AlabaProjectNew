@@ -9,12 +9,10 @@ class Department extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name', 'established', 'head', 'faculty_count', 'student_count', 'status'
-    ];
+    protected $fillable = ['name','established','head','faculty','students','status'];
 
-    public function courses()
-    {
-        return $this->hasMany(Course::class);
+    // Allow /api/departments/{name}
+    public function getRouteKeyName(): string {
+        return 'name';
     }
 }

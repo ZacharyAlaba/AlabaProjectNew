@@ -10,40 +10,25 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import axios from "axios";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
-// ---------- Data helpers ----------
-function getActiveCourses() {
-  const stored = localStorage.getItem("courses");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).filter(c => c.status === "Active").map(c => c.name);
-  } catch { return []; }
+// Simple status normalizer (optional)
+function normStatus(s) {
+  if (!s) return s;
+  const m = { ACTIVE: "Active", OFFLINE: "Offline", GRADUATED: "Graduated" };
+  const up = String(s).toUpperCase();
+  return m[up] || s;
 }
-function getActiveDepartments() {
-  const stored = localStorage.getItem("departments");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).filter(d => d.status === "Active").map(d => d.name);
-  } catch { return []; }
-}
-function getAcademicYears() {
-  const stored = localStorage.getItem("academicYears");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).map(y => y.name);
-  } catch { return []; }
-}
-function getStudents() {
-  const stored = localStorage.getItem("students");
-  if (!stored) return [];
-  try { return JSON.parse(stored); } catch { return []; }
-}
-function getFaculty() {
-  const stored = localStorage.getItem("faculty");
-  if (!stored) return [];
-  try { return JSON.parse(stored); } catch { return []; }
+
+function normalizeRank(r) {
+  if (!r) return "";
+  const up = String(r).trim().toUpperCase();
+  if (up.startsWith("PROFESSOR")) return "Professor";
+  if (up.startsWith("ASSOC")) return "Associate Professor";
+  if (up.startsWith("ASSIST")) return "Assistant Professor";
+  return r;
 }
 
 // ---------- Component ----------
@@ -53,12 +38,12 @@ export default function Reports() {
   const [course, setCourse] = useState("All Courses");
   const [academicYear, setAcademicYear] = useState("");
 
-  // Master data
-  const [courses, setCourses] = useState(getActiveCourses());
-  const [departments, setDepartments] = useState(getActiveDepartments());
-  const [academicYears, setAcademicYears] = useState(getAcademicYears());
-  const [students, setStudents] = useState(getStudents());
-  const [faculty, setFaculty] = useState(getFaculty());
+  // Master data (start empty)
+  const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [faculty, setFaculty] = useState([]);
 
   // Report state
   const [generatedAt, setGeneratedAt] = useState(null);
@@ -66,68 +51,100 @@ export default function Reports() {
   const [downloading, setDownloading] = useState(false);
   const reportRef = useRef(null);
 
-  // Keep lists in sync if localStorage changes
+  // LOAD from API once
   useEffect(() => {
-    function refresh() {
-      setCourses(getActiveCourses());
-      setDepartments(getActiveDepartments());
-      setAcademicYears(getAcademicYears());
-      setStudents(getStudents());
-      setFaculty(getFaculty());
+    async function loadAll() {
+      try {
+        const [
+          depRes,
+          courseRes,
+          yearRes,
+          studentRes,
+          facultyRes
+        ] = await Promise.all([
+          axios.get("/api/departments"),
+          axios.get("/api/courses"),
+          axios.get("/api/academic-years"),
+          axios.get("/api/students"),
+          axios.get("/api/faculty")
+        ]);
+
+        const depList = (depRes.data || []).filter(d => d.status === "Active").map(d => d.name);
+        const courseList = (courseRes.data || []).filter(c => c.status === "Active").map(c => c.name);
+        const yearList = (yearRes.data || []).filter(y => y.status !== "Archived").map(y => y.name);
+
+        const studentList = (studentRes.data || []).map(s => ({ ...s, status: normStatus(s.status) }));
+        const facultyList = (facultyRes.data || []).map(f => ({
+          ...f,
+          status: normStatus(f.status),
+          academicYear: f.academicYear || f.academic_year || "",
+          rank: normalizeRank(f.rank || f.position),   // key line: provide rank
+        }));
+
+        setDepartments(depList);
+        setCourses(courseList);
+        setAcademicYears(yearList);
+        setStudents(studentList);
+        setFaculty(facultyList);
+
+        // Optional mirrors for other components still using localStorage
+        localStorage.setItem("departments", JSON.stringify(depRes.data || []));
+        localStorage.setItem("courses", JSON.stringify(courseRes.data || []));
+        localStorage.setItem("academicYears", JSON.stringify(yearRes.data || []));
+        localStorage.setItem("students", JSON.stringify(studentList));
+        localStorage.setItem("faculty", JSON.stringify(facultyList));
+      } catch (e) {
+        console.error("Reports data load error:", e);
+      }
     }
-    window.addEventListener("storage", refresh);
-    refresh();
-    return () => window.removeEventListener("storage", refresh);
+    loadAll();
   }, []);
 
+  // Ensure selected academicYear stays valid
   useEffect(() => {
-    if (academicYears.length && !academicYears.includes(academicYear)) {
-      setAcademicYear(academicYears[0]);
+    if (academicYears.length && academicYear && !academicYears.includes(academicYear)) {
+      setAcademicYear("");
     }
-  }, [academicYears]);
+  }, [academicYears, academicYear]);
 
   // Derived filters
   const activeFilters = useMemo(() => ({
     reportType,
     course,
-    academicYear: academicYear?.trim() || ""
+    academicYear: academicYear.trim()
   }), [reportType, course, academicYear]);
 
-  // Students filtered by year & course
-  const filteredStudents = useMemo(() => {
-    return students.filter(s =>
+  // Filtered students
+  const filteredStudents = useMemo(() =>
+    students.filter(s =>
       (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) &&
       (activeFilters.course === "All Courses" ? true : s.course === activeFilters.course)
-    );
-  }, [students, activeFilters]);
+    ), [students, activeFilters]);
 
-  // NEW: Faculty filtered by year (only restrict if a year is chosen)
-  const filteredFaculty = useMemo(() => {
-    return faculty.filter(f =>
+  // Filtered faculty
+  const filteredFaculty = useMemo(() =>
+    faculty.filter(f =>
       (activeFilters.academicYear ? (f.academicYear || "").trim() === activeFilters.academicYear : true)
-    );
-  }, [faculty, activeFilters]);
+    ), [faculty, activeFilters]);
 
-  // Student counts by course (respect filters)
-  const studentByCourse = useMemo(() => {
-    return courses.map(c =>
+  // Student counts by course
+  const studentByCourse = useMemo(() =>
+    courses.map(c =>
       students.filter(s =>
         (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) &&
         s.course === c
       ).length
-    );
-  }, [students, courses, activeFilters]);
+    ), [students, courses, activeFilters]);
 
-  // Faculty counts by department (respect academic year)
-  const facultyByDept = useMemo(() => {
-    return departments.map(d =>
+  // Faculty counts by department
+  const facultyByDept = useMemo(() =>
+    departments.map(d =>
       filteredFaculty.filter(f => f.department === d).length
-    );
-  }, [departments, filteredFaculty]);
+    ), [departments, filteredFaculty]);
 
   // Student table rows
-  const studentDetails = useMemo(() => {
-    return courses.map(c => {
+  const studentDetails = useMemo(() =>
+    courses.map(c => {
       const list = students.filter(s =>
         (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) &&
         s.course === c
@@ -138,21 +155,19 @@ export default function Reports() {
         ? (list.reduce((sum, s) => sum + (parseFloat(s.gpa) || 0), 0) / list.length).toFixed(2)
         : "-";
       return { course: c, total: list.length, active, graduated, avgGpa };
-    });
-  }, [students, courses, activeFilters]);
+    }), [students, courses, activeFilters]);
 
-  // Faculty table rows (respect academic year)
-  const facultyDetails = useMemo(() => {
-    return departments.map(d => {
+  // Faculty table rows
+  const facultyDetails = useMemo(() =>
+    departments.map(d => {
       const list = filteredFaculty.filter(f => f.department === d);
       const professors = list.filter(f => f.rank === "Professor").length;
       const associates = list.filter(f => /Associate/i.test(f.rank)).length;
       const assistants = list.filter(f => /Assistant/i.test(f.rank)).length;
       return { dept: d, total: list.length, professors, associates, assistants };
-    });
-  }, [departments, filteredFaculty]);
+    }), [departments, filteredFaculty]);
 
-  // Five-year trends (per-year faculty counts now)
+  // Five-year trends
   const trendRows = useMemo(() => {
     const years = academicYears.slice(0, 5);
     return years.map((yr, idx, arr) => {
@@ -162,22 +177,19 @@ export default function Reports() {
       let yoy = "—";
       if (idx > 0) {
         const prevStudents = students.filter(s => (s.academicYear || "").trim() === arr[idx - 1]).length;
-        if (prevStudents) {
-          yoy = (((totalStudents - prevStudents) / prevStudents) * 100).toFixed(1) + "%";
-        }
+        if (prevStudents) yoy = (((totalStudents - prevStudents) / prevStudents) * 100).toFixed(1) + "%";
       }
       return { year: yr, students: totalStudents, faculty: totalFaculty, ratio, yoy };
     });
   }, [academicYears, students, faculty]);
 
-  // Average GPA (filtered)
-  const avgGPA = useMemo(() => {
-    return filteredStudents.length
+  // Average GPA
+  const avgGPA = useMemo(() =>
+    filteredStudents.length
       ? (filteredStudents.reduce((s, r) => s + (parseFloat(r.gpa) || 0), 0) / filteredStudents.length).toFixed(2)
-      : "0.00";
-  }, [filteredStudents]);
+      : "0.00", [filteredStudents]);
 
-  // Charts (use filtered faculty/students where appropriate)
+  // Charts
   const barData = useMemo(() => ({
     labels: courses,
     datasets: [{ label: "Students", data: studentByCourse, backgroundColor: "#8b5cf6" }]

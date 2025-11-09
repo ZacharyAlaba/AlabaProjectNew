@@ -2,87 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 
 class AcademicYearController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        return AcademicYear::orderByDesc('name')->get();
+    public function index() {
+        return AcademicYear::orderBy('name','desc')->get();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
-            'name'=>'required|string|unique:academic_years,name',
-            'status'=>'required|in:Current,Planned,Completed,Archived',
-            'start'=>'nullable|date',
-            'end'=>'nullable|date|after_or_equal:start'
+            'name' => 'required|string|unique:academic_years,name',
+            'status' => 'required|string',
+            'start' => 'required|date',
+            'end' => 'required|date|after_or_equal:start',
         ]);
         return AcademicYear::create($data);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
+    public function show(AcademicYear $academicYear) {
+        return $academicYear;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, AcademicYear $academicYear)
-    {
+    public function update(Request $request, AcademicYear $academicYear) {
         $data = $request->validate([
-            'status'=>'in:Current,Planned,Completed,Archived',
-            'start'=>'nullable|date',
-            'end'=>'nullable|date|after_or_equal:start'
+            'status' => 'sometimes|string',
+            'start' => 'sometimes|date',
+            'end' => 'sometimes|date|after_or_equal:start',
+            'name' => 'sometimes|string|unique:academic_years,name,' . $academicYear->id,
         ]);
         $academicYear->update($data);
-        return $academicYear->fresh();
+        return $academicYear;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(AcademicYear $academicYear)
-    {
+    public function destroy(AcademicYear $academicYear) {
         $academicYear->delete();
         return response()->noContent();
-    }
-
-    public function archive(AcademicYear $academicYear) {
-        $academicYear->update(['status'=>'Archived']);
-        return response()->json(['ok'=>true]);
-    }
-
-    public function activate(AcademicYear $academicYear) {
-        $academicYear->update(['status'=>'Planned']);
-        return response()->json(['ok'=>true]);
     }
 }

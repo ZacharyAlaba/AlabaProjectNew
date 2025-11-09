@@ -84437,26 +84437,6 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 chart_js__WEBPACK_IMPORTED_MODULE_5__.Chart.register(chart_js__WEBPACK_IMPORTED_MODULE_5__.ArcElement, chart_js__WEBPACK_IMPORTED_MODULE_5__.Title, chart_js__WEBPACK_IMPORTED_MODULE_5__.Tooltip, chart_js__WEBPACK_IMPORTED_MODULE_5__.Legend, chart_js__WEBPACK_IMPORTED_MODULE_5__.CategoryScale, chart_js__WEBPACK_IMPORTED_MODULE_5__.LinearScale, chart_js__WEBPACK_IMPORTED_MODULE_5__.BarElement, chart_js__WEBPACK_IMPORTED_MODULE_5__.PointElement, chart_js__WEBPACK_IMPORTED_MODULE_5__.LineElement);
 
-// Utility functions for live counts
-function getActiveCourses() {
-  var stored = localStorage.getItem("courses");
-  if (stored) {
-    return JSON.parse(stored).filter(function (c) {
-      return c.status === "Active";
-    }).length;
-  }
-  return 0;
-}
-function getActiveDepartments() {
-  var stored = localStorage.getItem("departments");
-  if (stored) {
-    return JSON.parse(stored).filter(function (d) {
-      return d.status === "Active";
-    }).length;
-  }
-  return 0;
-}
-
 // --- Activity Logging ---
 function logActivity(type, desc) {
   var logs = JSON.parse(localStorage.getItem("activityLog") || "[]");
@@ -84548,32 +84528,39 @@ function AdminDashboard() {
     _useState6 = _slicedToArray(_useState5, 2),
     faculty = _useState6[0],
     setFaculty = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({}),
+
+  // NEW: hold DB lists for courses and departments
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState8 = _slicedToArray(_useState7, 2),
-    facultyDistribution = _useState8[0],
-    setFacultyDistribution = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
-      labels: [],
-      datasets: []
-    }),
+    courses = _useState8[0],
+    setCourses = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState0 = _slicedToArray(_useState9, 2),
-    studentEnrollment = _useState0[0],
-    setStudentEnrollment = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    departments = _useState0[0],
+    setDepartments = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({}),
+    _useState10 = _slicedToArray(_useState1, 2),
+    facultyDistribution = _useState10[0],
+    setFacultyDistribution = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       labels: [],
       datasets: []
     }),
-    _useState10 = _slicedToArray(_useState1, 2),
-    growthTrends = _useState10[0],
-    setGrowthTrends = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveCourses()),
     _useState12 = _slicedToArray(_useState11, 2),
-    activeCourses = _useState12[0],
-    setActiveCourses = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveDepartments()),
+    studentEnrollment = _useState12[0],
+    setStudentEnrollment = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+      labels: [],
+      datasets: []
+    }),
     _useState14 = _slicedToArray(_useState13, 2),
-    activeDepartments = _useState14[0],
-    setActiveDepartments = _useState14[1];
+    growthTrends = _useState14[0],
+    setGrowthTrends = _useState14[1];
+
+  // REMOVE these localStorage count states:
+  //  const [activeCourses, setActiveCourses] = useState(getActiveCourses());
+  //  const [activeDepartments, setActiveDepartments] = useState(getActiveDepartments());
+
   var navigate = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useNavigate)();
   var location = (0,react_router_dom__WEBPACK_IMPORTED_MODULE_2__.useLocation)();
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_7__.getProfile)();
@@ -84585,6 +84572,14 @@ function AdminDashboard() {
   var activeFaculty = faculty.filter(function (f) {
     return f.status === "Active";
   });
+
+  // NEW: derive live counts from API-fetched data
+  var activeCourses = courses.filter(function (c) {
+    return c.status === "Active";
+  }).length;
+  var activeDepartments = departments.filter(function (d) {
+    return d.status === "Active";
+  }).length;
 
   // Calculate average GPA for active students
   var avg_gpa = activeStudents.length > 0 ? (activeStudents.map(function (s) {
@@ -84614,20 +84609,32 @@ function AdminDashboard() {
       setFaculty(list);
       localStorage.setItem("faculty", JSON.stringify(list));
     });
+
+    // NEW: fetch courses and departments from DB
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/courses").then(function (res) {
+      var list = Array.isArray(res.data) ? res.data : [];
+      setCourses(list);
+      // optional: keep a mirror if other parts still read from localStorage
+      localStorage.setItem("courses", JSON.stringify(list));
+    });
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/departments").then(function (res) {
+      var list = Array.isArray(res.data) ? res.data : [];
+      setDepartments(list);
+      // optional: keep a mirror if other parts still read from localStorage
+      localStorage.setItem("departments", JSON.stringify(list));
+    });
   }, []);
 
-  // Live update for courses/departments
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    function updateCounts() {
-      setActiveCourses(getActiveCourses());
-      setActiveDepartments(getActiveDepartments());
-    }
-    window.addEventListener("storage", updateCounts);
-    updateCounts();
-    return function () {
-      return window.removeEventListener("storage", updateCounts);
-    };
-  }, []);
+  // REMOVE the storage listener used to recalc counts (no longer needed)
+  //  useEffect(() => {
+  //      function updateCounts() {
+  //          setActiveCourses(getActiveCourses());
+  //          setActiveDepartments(getActiveDepartments());
+  //      }
+  //      window.addEventListener("storage", updateCounts);
+  //      updateCounts();
+  //      return () => window.removeEventListener("storage", updateCounts);
+  //  }, []);
 
   // Calculate faculty distribution by department
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
@@ -85564,6 +85571,16 @@ function inferAcademicYear(joinedDate, years) {
   }
   return "";
 }
+
+// Add rank normalizer (like student status)
+function normalizeRank(r) {
+  if (!r) return "";
+  var up = String(r).trim().toUpperCase();
+  if (up.startsWith("PROFESSOR")) return "Professor";
+  if (up.startsWith("ASSOC")) return "Associate Professor";
+  if (up.startsWith("ASSIST")) return "Assistant Professor";
+  return r;
+}
 function FacultyManagement() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
@@ -85629,11 +85646,12 @@ function FacultyManagement() {
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/faculty").then(function (res) {
       var data = Array.isArray(res.data) ? res.data : [];
-      // Map joined -> academicYear if missing
       var mapped = data.map(function (f) {
         return _objectSpread(_objectSpread({}, f), {}, {
           academicYear: f.academicYear || inferAcademicYear(f.joined, academicYears),
-          rank: f.rank || f.position
+          rank: normalizeRank(f.rank || f.position),
+          // ensure rank
+          position: normalizeRank(f.position) // keep position normalized too
         });
       });
       setFaculty(mapped);
@@ -85641,9 +85659,25 @@ function FacultyManagement() {
     });
   }, [academicYears]); // re-run if academic years load later
 
+  // Load departments and academic years from API
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    setDepartments(getDepartments());
-    setAcademicYears(getAcademicYears()); // keep in sync
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/departments").then(function (r) {
+      var list = (r.data || []).filter(function (d) {
+        return d.status === "Active";
+      }).map(function (d) {
+        return d.name;
+      });
+      setDepartments(list);
+      localStorage.setItem("departments", JSON.stringify(r.data || []));
+    });
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/academic-years").then(function (r) {
+      // keep full objects for inferAcademicYear()
+      var years = (r.data || []).filter(function (y) {
+        return y.status !== "Archived";
+      });
+      setAcademicYears(years);
+      localStorage.setItem("academicYears", JSON.stringify(years));
+    });
   }, []);
   var handleChange = function handleChange(e) {
     setFormData(_objectSpread(_objectSpread({}, formData), {}, _defineProperty({}, e.target.name, e.target.value)));
@@ -85652,33 +85686,50 @@ function FacultyManagement() {
   // Add faculty handler (API)
   var handleAddFaculty = /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(newFaculty) {
-      var selYear, res, data, updated;
+      var payload, res, saved, _t;
       return _regenerator().w(function (_context) {
-        while (1) switch (_context.n) {
+        while (1) switch (_context.p = _context.n) {
           case 0:
-            newFaculty.rank = newFaculty.position;
-            // Keep a joined placeholder (first day of academic year) for backend compatibility
-            selYear = academicYears.find(function (y) {
-              return y.name === newFaculty.academicYear;
-            });
-            newFaculty.joined = (selYear === null || selYear === void 0 ? void 0 : selYear.start) || ""; // backend may expect joined
+            _context.p = 0;
+            payload = {
+              name: newFaculty.name,
+              position: normalizeRank(newFaculty.position),
+              department: newFaculty.department,
+              email: newFaculty.email,
+              phone: newFaculty.phone,
+              specialization: newFaculty.specialization,
+              status: newFaculty.status,
+              academic_year: newFaculty.academicYear
+            };
             _context.n = 1;
-            return axios__WEBPACK_IMPORTED_MODULE_1___default().post("/api/faculty", newFaculty);
+            return axios__WEBPACK_IMPORTED_MODULE_1___default().post("/api/faculty", payload, {
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              }
+            });
           case 1:
             res = _context.v;
-            data = _objectSpread(_objectSpread({}, res.data), {}, {
-              rank: newFaculty.rank,
+            saved = _objectSpread(_objectSpread({}, res.data), {}, {
+              rank: normalizeRank(res.data.rank || res.data.position),
+              position: normalizeRank(res.data.position),
               academicYear: newFaculty.academicYear
             });
-            updated = [].concat(_toConsumableArray(faculty), [data]);
-            setFaculty(updated);
-            localStorage.setItem("faculty", JSON.stringify(updated));
-            logActivity("faculty", "New faculty added: ".concat(newFaculty.name, " (").concat(newFaculty.department, ")"));
+            setFaculty(function (prev) {
+              return [].concat(_toConsumableArray(prev), [saved]);
+            });
             setShowAddModal(false);
+            _context.n = 3;
+            break;
           case 2:
+            _context.p = 2;
+            _t = _context.v;
+            console.error("Add faculty error", _t);
+            alert("Failed to add faculty.");
+          case 3:
             return _context.a(2);
         }
-      }, _callee);
+      }, _callee, null, [[0, 2]]);
     }));
     return function handleAddFaculty(_x) {
       return _ref.apply(this, arguments);
@@ -85736,7 +85787,8 @@ function FacultyManagement() {
               return y.name === editFaculty.academicYear;
             });
             payload = _objectSpread(_objectSpread({}, editFaculty), {}, {
-              rank: editFaculty.position,
+              position: normalizeRank(editFaculty.position),
+              academic_year: editFaculty.academicYear,
               joined: (selYear === null || selYear === void 0 ? void 0 : selYear.start) || editFaculty.joined || ""
             });
             _context3.n = 1;
@@ -85745,7 +85797,8 @@ function FacultyManagement() {
             res = _context3.v;
             updated = faculty.map(function (f) {
               return f.id === editFaculty.id ? _objectSpread(_objectSpread({}, res.data), {}, {
-                rank: payload.rank,
+                rank: normalizeRank(res.data.rank || res.data.position),
+                position: normalizeRank(res.data.position),
                 academicYear: editFaculty.academicYear
               }) : f;
             });
@@ -87468,14 +87521,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-chartjs-2 */ "./node_modules/react-chartjs-2/dist/index.js");
 /* harmony import */ var chart_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! chart.js */ "./node_modules/chart.js/dist/chart.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_3__);
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
-function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
-function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -87487,63 +87542,27 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
+
 chart_js__WEBPACK_IMPORTED_MODULE_2__.Chart.register(chart_js__WEBPACK_IMPORTED_MODULE_2__.CategoryScale, chart_js__WEBPACK_IMPORTED_MODULE_2__.LinearScale, chart_js__WEBPACK_IMPORTED_MODULE_2__.BarElement, chart_js__WEBPACK_IMPORTED_MODULE_2__.ArcElement, chart_js__WEBPACK_IMPORTED_MODULE_2__.Title, chart_js__WEBPACK_IMPORTED_MODULE_2__.Tooltip, chart_js__WEBPACK_IMPORTED_MODULE_2__.Legend);
 
-// ---------- Data helpers ----------
-function getActiveCourses() {
-  var stored = localStorage.getItem("courses");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).filter(function (c) {
-      return c.status === "Active";
-    }).map(function (c) {
-      return c.name;
-    });
-  } catch (_unused) {
-    return [];
-  }
+// Simple status normalizer (optional)
+function normStatus(s) {
+  if (!s) return s;
+  var m = {
+    ACTIVE: "Active",
+    OFFLINE: "Offline",
+    GRADUATED: "Graduated"
+  };
+  var up = String(s).toUpperCase();
+  return m[up] || s;
 }
-function getActiveDepartments() {
-  var stored = localStorage.getItem("departments");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).filter(function (d) {
-      return d.status === "Active";
-    }).map(function (d) {
-      return d.name;
-    });
-  } catch (_unused2) {
-    return [];
-  }
-}
-function getAcademicYears() {
-  var stored = localStorage.getItem("academicYears");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored).map(function (y) {
-      return y.name;
-    });
-  } catch (_unused3) {
-    return [];
-  }
-}
-function getStudents() {
-  var stored = localStorage.getItem("students");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored);
-  } catch (_unused4) {
-    return [];
-  }
-}
-function getFaculty() {
-  var stored = localStorage.getItem("faculty");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored);
-  } catch (_unused5) {
-    return [];
-  }
+function normalizeRank(r) {
+  if (!r) return "";
+  var up = String(r).trim().toUpperCase();
+  if (up.startsWith("PROFESSOR")) return "Professor";
+  if (up.startsWith("ASSOC")) return "Associate Professor";
+  if (up.startsWith("ASSIST")) return "Assistant Professor";
+  return r;
 }
 
 // ---------- Component ----------
@@ -87562,24 +87581,24 @@ function Reports() {
     academicYear = _useState6[0],
     setAcademicYear = _useState6[1];
 
-  // Master data
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveCourses()),
+  // Master data (start empty)
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState8 = _slicedToArray(_useState7, 2),
     courses = _useState8[0],
     setCourses = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveDepartments()),
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState0 = _slicedToArray(_useState9, 2),
     departments = _useState0[0],
     setDepartments = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState10 = _slicedToArray(_useState1, 2),
     academicYears = _useState10[0],
     setAcademicYears = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getStudents()),
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState12 = _slicedToArray(_useState11, 2),
     students = _useState12[0],
     setStudents = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getFaculty()),
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState14 = _slicedToArray(_useState13, 2),
     faculty = _useState14[0],
     setFaculty = _useState14[1];
@@ -87599,51 +87618,114 @@ function Reports() {
     setDownloading = _useState20[1];
   var reportRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
 
-  // Keep lists in sync if localStorage changes
+  // LOAD from API once
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    function refresh() {
-      setCourses(getActiveCourses());
-      setDepartments(getActiveDepartments());
-      setAcademicYears(getAcademicYears());
-      setStudents(getStudents());
-      setFaculty(getFaculty());
+    function loadAll() {
+      return _loadAll.apply(this, arguments);
     }
-    window.addEventListener("storage", refresh);
-    refresh();
-    return function () {
-      return window.removeEventListener("storage", refresh);
-    };
+    function _loadAll() {
+      _loadAll = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+        var _yield$Promise$all, _yield$Promise$all2, depRes, courseRes, yearRes, studentRes, facultyRes, depList, courseList, yearList, studentList, facultyList, _t;
+        return _regenerator().w(function (_context) {
+          while (1) switch (_context.p = _context.n) {
+            case 0:
+              _context.p = 0;
+              _context.n = 1;
+              return Promise.all([axios__WEBPACK_IMPORTED_MODULE_3___default().get("/api/departments"), axios__WEBPACK_IMPORTED_MODULE_3___default().get("/api/courses"), axios__WEBPACK_IMPORTED_MODULE_3___default().get("/api/academic-years"), axios__WEBPACK_IMPORTED_MODULE_3___default().get("/api/students"), axios__WEBPACK_IMPORTED_MODULE_3___default().get("/api/faculty")]);
+            case 1:
+              _yield$Promise$all = _context.v;
+              _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 5);
+              depRes = _yield$Promise$all2[0];
+              courseRes = _yield$Promise$all2[1];
+              yearRes = _yield$Promise$all2[2];
+              studentRes = _yield$Promise$all2[3];
+              facultyRes = _yield$Promise$all2[4];
+              depList = (depRes.data || []).filter(function (d) {
+                return d.status === "Active";
+              }).map(function (d) {
+                return d.name;
+              });
+              courseList = (courseRes.data || []).filter(function (c) {
+                return c.status === "Active";
+              }).map(function (c) {
+                return c.name;
+              });
+              yearList = (yearRes.data || []).filter(function (y) {
+                return y.status !== "Archived";
+              }).map(function (y) {
+                return y.name;
+              });
+              studentList = (studentRes.data || []).map(function (s) {
+                return _objectSpread(_objectSpread({}, s), {}, {
+                  status: normStatus(s.status)
+                });
+              });
+              facultyList = (facultyRes.data || []).map(function (f) {
+                return _objectSpread(_objectSpread({}, f), {}, {
+                  status: normStatus(f.status),
+                  academicYear: f.academicYear || f.academic_year || "",
+                  rank: normalizeRank(f.rank || f.position) // key line: provide rank
+                });
+              });
+              setDepartments(depList);
+              setCourses(courseList);
+              setAcademicYears(yearList);
+              setStudents(studentList);
+              setFaculty(facultyList);
+
+              // Optional mirrors for other components still using localStorage
+              localStorage.setItem("departments", JSON.stringify(depRes.data || []));
+              localStorage.setItem("courses", JSON.stringify(courseRes.data || []));
+              localStorage.setItem("academicYears", JSON.stringify(yearRes.data || []));
+              localStorage.setItem("students", JSON.stringify(studentList));
+              localStorage.setItem("faculty", JSON.stringify(facultyList));
+              _context.n = 3;
+              break;
+            case 2:
+              _context.p = 2;
+              _t = _context.v;
+              console.error("Reports data load error:", _t);
+            case 3:
+              return _context.a(2);
+          }
+        }, _callee, null, [[0, 2]]);
+      }));
+      return _loadAll.apply(this, arguments);
+    }
+    loadAll();
   }, []);
+
+  // Ensure selected academicYear stays valid
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    if (academicYears.length && !academicYears.includes(academicYear)) {
-      setAcademicYear(academicYears[0]);
+    if (academicYears.length && academicYear && !academicYears.includes(academicYear)) {
+      setAcademicYear("");
     }
-  }, [academicYears]);
+  }, [academicYears, academicYear]);
 
   // Derived filters
   var activeFilters = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return {
       reportType: reportType,
       course: course,
-      academicYear: (academicYear === null || academicYear === void 0 ? void 0 : academicYear.trim()) || ""
+      academicYear: academicYear.trim()
     };
   }, [reportType, course, academicYear]);
 
-  // Students filtered by year & course
+  // Filtered students
   var filteredStudents = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return students.filter(function (s) {
       return (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) && (activeFilters.course === "All Courses" ? true : s.course === activeFilters.course);
     });
   }, [students, activeFilters]);
 
-  // NEW: Faculty filtered by year (only restrict if a year is chosen)
+  // Filtered faculty
   var filteredFaculty = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return faculty.filter(function (f) {
       return activeFilters.academicYear ? (f.academicYear || "").trim() === activeFilters.academicYear : true;
     });
   }, [faculty, activeFilters]);
 
-  // Student counts by course (respect filters)
+  // Student counts by course
   var studentByCourse = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return courses.map(function (c) {
       return students.filter(function (s) {
@@ -87652,7 +87734,7 @@ function Reports() {
     });
   }, [students, courses, activeFilters]);
 
-  // Faculty counts by department (respect academic year)
+  // Faculty counts by department
   var facultyByDept = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return departments.map(function (d) {
       return filteredFaculty.filter(function (f) {
@@ -87686,7 +87768,7 @@ function Reports() {
     });
   }, [students, courses, activeFilters]);
 
-  // Faculty table rows (respect academic year)
+  // Faculty table rows
   var facultyDetails = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return departments.map(function (d) {
       var list = filteredFaculty.filter(function (f) {
@@ -87711,7 +87793,7 @@ function Reports() {
     });
   }, [departments, filteredFaculty]);
 
-  // Five-year trends (per-year faculty counts now)
+  // Five-year trends
   var trendRows = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     var years = academicYears.slice(0, 5);
     return years.map(function (yr, idx, arr) {
@@ -87727,9 +87809,7 @@ function Reports() {
         var prevStudents = students.filter(function (s) {
           return (s.academicYear || "").trim() === arr[idx - 1];
         }).length;
-        if (prevStudents) {
-          yoy = ((totalStudents - prevStudents) / prevStudents * 100).toFixed(1) + "%";
-        }
+        if (prevStudents) yoy = ((totalStudents - prevStudents) / prevStudents * 100).toFixed(1) + "%";
       }
       return {
         year: yr,
@@ -87741,14 +87821,14 @@ function Reports() {
     });
   }, [academicYears, students, faculty]);
 
-  // Average GPA (filtered)
+  // Average GPA
   var avgGPA = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return filteredStudents.length ? (filteredStudents.reduce(function (s, r) {
       return s + (parseFloat(r.gpa) || 0);
     }, 0) / filteredStudents.length).toFixed(2) : "0.00";
   }, [filteredStudents]);
 
-  // Charts (use filtered faculty/students where appropriate)
+  // Charts
   var barData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return {
       labels: courses,
@@ -87793,34 +87873,34 @@ function Reports() {
     }, 50);
   };
   var downloadPDF = /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-      var html2canvas, jsPDF, canvas, imgData, pdf, pageWidth, pageHeight, imgWidth, imgHeight, heightLeft, position, filename, _t;
-      return _regenerator().w(function (_context) {
-        while (1) switch (_context.p = _context.n) {
+    var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+      var html2canvas, jsPDF, canvas, imgData, pdf, pageWidth, pageHeight, imgWidth, imgHeight, heightLeft, position, filename, _t2;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.p = _context2.n) {
           case 0:
             if (!(!reportRef.current || !generatedAt)) {
-              _context.n = 1;
+              _context2.n = 1;
               break;
             }
-            return _context.a(2);
+            return _context2.a(2);
           case 1:
             setDownloading(true);
-            _context.p = 2;
+            _context2.p = 2;
             html2canvas = window.html2canvas;
             jsPDF = window.jspdf.jsPDF;
             if (!(!html2canvas || !jsPDF)) {
-              _context.n = 3;
+              _context2.n = 3;
               break;
             }
             throw new Error("Libraries not loaded");
           case 3:
-            _context.n = 4;
+            _context2.n = 4;
             return html2canvas(reportRef.current, {
               scale: 2,
               backgroundColor: "#0f1020"
             });
           case 4:
-            canvas = _context.v;
+            canvas = _context2.v;
             imgData = canvas.toDataURL("image/png");
             pdf = new jsPDF("p", "pt", "a4");
             pageWidth = pdf.internal.pageSize.getWidth();
@@ -87839,21 +87919,21 @@ function Reports() {
             }
             filename = "".concat(reportId || "report", "_").concat(new Date().toISOString().slice(0, 10), ".pdf");
             pdf.save(filename);
-            _context.n = 6;
+            _context2.n = 6;
             break;
           case 5:
-            _context.p = 5;
-            _t = _context.v;
-            console.error(_t);
+            _context2.p = 5;
+            _t2 = _context2.v;
+            console.error(_t2);
             window.print();
           case 6:
-            _context.p = 6;
+            _context2.p = 6;
             setDownloading(false);
-            return _context.f(6);
+            return _context2.f(6);
           case 7:
-            return _context.a(2);
+            return _context2.a(2);
         }
-      }, _callee, null, [[2, 5, 6, 7]]);
+      }, _callee2, null, [[2, 5, 6, 7]]);
     }));
     return function downloadPDF() {
       return _ref.apply(this, arguments);
@@ -88589,253 +88669,179 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ProfileWidget__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ProfileWidget */ "./resources/js/components/ProfileWidget.js");
 /* harmony import */ var _MyProfile__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./MyProfile */ "./resources/js/components/MyProfile.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
-function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
-function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 
 
 
 
-// DEPARTMENTS from your image
-var initialDepartments = [{
-  name: "Engineering and Technology",
-  established: 1995,
-  head: "Dr. Robert Smith",
-  faculty: 24,
-  students: 567,
-  status: "Active"
-}, {
-  name: "Nursing",
-  established: 1997,
-  head: "Dr. Jane Doe",
-  faculty: 18,
-  students: 400,
-  status: "Active"
-}, {
-  name: "Accountancy",
-  established: 1998,
-  head: "Prof. John Smith",
-  faculty: 15,
-  students: 350,
-  status: "Active"
-}, {
-  name: "Business Administration",
-  established: 1999,
-  head: "Prof. Sarah Johnson",
-  faculty: 20,
-  students: 500,
-  status: "Active"
-}, {
-  name: "Tourism and Hospitality Management",
-  established: 2000,
-  head: "Dr. Emily Brown",
-  faculty: 12,
-  students: 300,
-  status: "Active"
-}, {
-  name: "Arts and Sciences",
-  established: 2001,
-  head: "Prof. David Wilson",
-  faculty: 14,
-  students: 320,
-  status: "Active"
-}, {
-  name: "Computer Studies",
-  established: 2002,
-  head: "Dr. Alan Turing",
-  faculty: 22,
-  students: 600,
-  status: "Active"
-}, {
-  name: "Criminal Justice Education",
-  established: 2003,
-  head: "Dr. Michael Chen",
-  faculty: 10,
-  students: 200,
-  status: "Active"
-}, {
-  name: "Teacher Education",
-  established: 2004,
-  head: "Dr. Emily Rodriguez",
-  faculty: 16,
-  students: 280,
-  status: "Active"
-}];
+// REMOVE seed/localStorage helpers and calls:
+// const initialDepartments = [...]
+// const initialCourses = [...]
+// const initialAcademicYears = [...]
+// const SEED_FLAG = ...
+// function ensureSeeded() { ... }
+// ensureSeeded();
+// function getInitialDepartments() { ... } etc.
 
-// Example initial courses (link to departments above)
-var initialCourses = [{
-  name: "BSIT",
-  code: "INFORMATION TECHNOLOGY",
-  department: "Computer Studies",
-  credits: 120,
-  duration: 4,
-  status: "Active"
-}, {
-  name: "BSA",
-  code: "ACCOUNTANT",
-  department: "Accountancy",
-  credits: 120,
-  duration: 4,
-  status: "Active"
-}, {
-  name: "BSN",
-  code: "NURSE",
-  department: "Nursing",
-  credits: 120,
-  duration: 4,
-  status: "Active"
-}, {
-  name: "BSBA",
-  code: "BUSINESS",
-  department: "Business Administration",
-  credits: 120,
-  duration: 4,
-  status: "Active"
-}, {
-  name: "BSTM",
-  code: "TYMES",
-  department: "Tourism and Hospitality Management",
-  credits: 120,
-  duration: 4,
-  status: "Active"
-}];
-var initialAcademicYears = [{
-  name: "2024-2025",
-  status: "Current",
-  start: "2024-09-01",
-  end: "2025-06-30"
-}, {
-  name: "2025-2026",
-  status: "Planned",
-  start: "2025-09-01",
-  end: "2026-06-30"
-}, {
-  name: "2023-2024",
-  status: "Completed",
-  start: "2023-09-01",
-  end: "2024-06-30"
-}, {
-  name: "2022-2023",
-  status: "Completed",
-  start: "2022-09-01",
-  end: "2023-06-30"
-}, {
-  name: "2021-2022",
-  status: "Completed",
-  start: "2021-09-01",
-  end: "2022-06-30"
-}];
-
-// Seed once, then never overwrite user's data
-var SEED_FLAG = "sfms:seed:v1";
-function ensureSeeded() {
-  if (!localStorage.getItem(SEED_FLAG)) {
-    if (!localStorage.getItem("departments")) {
-      localStorage.setItem("departments", JSON.stringify(initialDepartments));
-    }
-    if (!localStorage.getItem("courses")) {
-      localStorage.setItem("courses", JSON.stringify(initialCourses));
-    }
-    if (!localStorage.getItem("academicYears")) {
-      localStorage.setItem("academicYears", JSON.stringify(initialAcademicYears));
-    }
-    localStorage.setItem(SEED_FLAG, "1");
+// ADD a tiny API client
+var apiBase = "/api";
+function json(_x) {
+  return _json.apply(this, arguments);
+}
+function _json() {
+  _json = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee15(res) {
+    var _t2, _t3, _t4;
+    return _regenerator().w(function (_context15) {
+      while (1) switch (_context15.n) {
+        case 0:
+          if (res.ok) {
+            _context15.n = 3;
+            break;
+          }
+          _t2 = Error;
+          _context15.n = 1;
+          return res.text();
+        case 1:
+          _t3 = _context15.v;
+          if (_t3) {
+            _context15.n = 2;
+            break;
+          }
+          _t3 = res.statusText;
+        case 2:
+          _t4 = _t3;
+          throw new _t2(_t4);
+        case 3:
+          return _context15.a(2, res.status === 204 ? null : res.json());
+      }
+    }, _callee15);
+  }));
+  return _json.apply(this, arguments);
+}
+var settingsApi = {
+  // departments
+  listDepartments: function listDepartments() {
+    return fetch("".concat(apiBase, "/departments")).then(json);
+  },
+  createDepartment: function createDepartment(dep) {
+    return fetch("".concat(apiBase, "/departments"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(dep)
+    }).then(json);
+  },
+  updateDepartment: function updateDepartment(name, dep) {
+    return fetch("".concat(apiBase, "/departments/").concat(encodeURIComponent(name)), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(dep)
+    }).then(json);
+  },
+  deleteDepartment: function deleteDepartment(name) {
+    return fetch("".concat(apiBase, "/departments/").concat(encodeURIComponent(name)), {
+      method: "DELETE"
+    }).then(json);
+  },
+  // courses
+  listCourses: function listCourses() {
+    return fetch("".concat(apiBase, "/courses")).then(json);
+  },
+  createCourse: function createCourse(c) {
+    return fetch("".concat(apiBase, "/courses"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(c)
+    }).then(json);
+  },
+  updateCourse: function updateCourse(code, c) {
+    return fetch("".concat(apiBase, "/courses/").concat(encodeURIComponent(code)), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(c)
+    }).then(json);
+  },
+  deleteCourse: function deleteCourse(code) {
+    return fetch("".concat(apiBase, "/courses/").concat(encodeURIComponent(code)), {
+      method: "DELETE"
+    }).then(json);
+  },
+  // academic years
+  listYears: function listYears() {
+    return fetch("".concat(apiBase, "/academic-years")).then(json);
+  },
+  createYear: function createYear(y) {
+    return fetch("".concat(apiBase, "/academic-years"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(y)
+    }).then(json);
+  },
+  updateYear: function updateYear(name, y) {
+    return fetch("".concat(apiBase, "/academic-years/").concat(encodeURIComponent(name)), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(y)
+    }).then(json);
+  },
+  deleteYear: function deleteYear(name) {
+    return fetch("".concat(apiBase, "/academic-years/").concat(encodeURIComponent(name)), {
+      method: "DELETE"
+    }).then(json);
   }
-}
-// Run immediately so getters below always read from LS
-ensureSeeded();
-
-// Read ONLY from localStorage; no more fallbacks to samples
-function getInitialDepartments() {
-  var stored = localStorage.getItem("departments");
-  return stored ? JSON.parse(stored) : [];
-}
-function getInitialCourses() {
-  var stored = localStorage.getItem("courses");
-  return stored ? JSON.parse(stored) : [];
-}
-function getInitialAcademicYears() {
-  var stored = localStorage.getItem("academicYears");
-  return stored ? JSON.parse(stored) : [];
-}
-
-// Map helpers (API -> UI shape)
-var mapDepartmentsAPI = function mapDepartmentsAPI() {
-  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  return arr.map(function (x) {
-    var _x$established, _x$head, _x$faculty_count, _x$student_count;
-    return {
-      id: x.id,
-      name: x.name,
-      established: (_x$established = x.established) !== null && _x$established !== void 0 ? _x$established : "",
-      head: (_x$head = x.head) !== null && _x$head !== void 0 ? _x$head : "",
-      faculty: (_x$faculty_count = x.faculty_count) !== null && _x$faculty_count !== void 0 ? _x$faculty_count : 0,
-      students: (_x$student_count = x.student_count) !== null && _x$student_count !== void 0 ? _x$student_count : 0,
-      status: x.status || "Active"
-    };
-  });
-};
-var mapCoursesAPI = function mapCoursesAPI() {
-  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  return arr.map(function (x) {
-    var _x$department, _x$credits, _x$duration;
-    return {
-      id: x.id,
-      name: x.name,
-      code: x.code,
-      department: ((_x$department = x.department) === null || _x$department === void 0 ? void 0 : _x$department.name) || x.department || "",
-      // string only
-      credits: (_x$credits = x.credits) !== null && _x$credits !== void 0 ? _x$credits : 0,
-      duration: (_x$duration = x.duration) !== null && _x$duration !== void 0 ? _x$duration : 4,
-      status: x.status || "Active"
-    };
-  });
-};
-var mapYearsAPI = function mapYearsAPI() {
-  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-  return arr.map(function (x) {
-    return {
-      id: x.id,
-      name: x.name,
-      status: x.status || "Planned",
-      start: x.start || "",
-      end: x.end || ""
-    };
-  });
 };
 function Settings() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("Courses"),
     _useState2 = _slicedToArray(_useState, 2),
     tab = _useState2[0],
     setTab = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getInitialDepartments()),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState4 = _slicedToArray(_useState3, 2),
     departments = _useState4[0],
-    setDepartments = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getInitialCourses()),
+    setDepartments = _useState4[1]; // was getInitialDepartments()
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState6 = _slicedToArray(_useState5, 2),
     courses = _useState6[0],
-    setCourses = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getInitialAcademicYears()),
+    setCourses = _useState6[1]; // was getInitialCourses()
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState8 = _slicedToArray(_useState7, 2),
     academicYears = _useState8[0],
-    setAcademicYears = _useState8[1];
+    setAcademicYears = _useState8[1]; // was getInitialAcademicYears()
 
   // Modal states
   var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
@@ -88879,167 +88885,411 @@ function Settings() {
     menuOpen = _useState26[0],
     setMenuOpen = _useState26[1];
 
-  // Persist to localStorage
+  // LOAD from API on mount
   react__WEBPACK_IMPORTED_MODULE_0__.useEffect(function () {
-    localStorage.setItem("departments", JSON.stringify(departments));
-  }, [departments]);
-  react__WEBPACK_IMPORTED_MODULE_0__.useEffect(function () {
-    localStorage.setItem("courses", JSON.stringify(courses));
-  }, [courses]);
-  react__WEBPACK_IMPORTED_MODULE_0__.useEffect(function () {
-    localStorage.setItem("academicYears", JSON.stringify(academicYears));
-  }, [academicYears]);
-
-  // Fetch from API on mount
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-      var _yield$Promise$all, _yield$Promise$all2, dRes, cRes, yRes, _yield$Promise$all3, _yield$Promise$all4, d, c, y, _t;
+      var _yield$Promise$all, _yield$Promise$all2, deps, crs, yrs, _t;
       return _regenerator().w(function (_context) {
         while (1) switch (_context.p = _context.n) {
           case 0:
             _context.p = 0;
             _context.n = 1;
-            return Promise.all([fetch('/api/departments'), fetch('/api/courses'), fetch('/api/academic-years')]);
+            return Promise.all([settingsApi.listDepartments(), settingsApi.listCourses(), settingsApi.listYears()]);
           case 1:
             _yield$Promise$all = _context.v;
             _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 3);
-            dRes = _yield$Promise$all2[0];
-            cRes = _yield$Promise$all2[1];
-            yRes = _yield$Promise$all2[2];
-            _context.n = 2;
-            return Promise.all([dRes.json(), cRes.json(), yRes.json()]);
-          case 2:
-            _yield$Promise$all3 = _context.v;
-            _yield$Promise$all4 = _slicedToArray(_yield$Promise$all3, 3);
-            d = _yield$Promise$all4[0];
-            c = _yield$Promise$all4[1];
-            y = _yield$Promise$all4[2];
-            setDepartments(mapDepartmentsAPI(d));
-            setCourses(mapCoursesAPI(c));
-            setAcademicYears(mapYearsAPI(y));
-            _context.n = 4;
+            deps = _yield$Promise$all2[0];
+            crs = _yield$Promise$all2[1];
+            yrs = _yield$Promise$all2[2];
+            setDepartments(deps);
+            setCourses(crs);
+            setAcademicYears(yrs);
+            _context.n = 3;
             break;
-          case 3:
-            _context.p = 3;
+          case 2:
+            _context.p = 2;
             _t = _context.v;
             console.error(_t);
-          case 4:
+            alert("Failed to load settings from server.");
+          case 3:
             return _context.a(2);
         }
-      }, _callee, null, [[0, 3]]);
+      }, _callee, null, [[0, 2]]);
     }))();
   }, []);
 
-  // Archive/Activate handlers
-  var handleArchiveCourse = function handleArchiveCourse(code) {
-    setCourses(courses.map(function (c) {
-      return c.code === code ? _objectSpread(_objectSpread({}, c), {}, {
-        status: "Archived"
-      }) : c;
-    }));
-  };
-  var handleActivateCourse = function handleActivateCourse(code) {
-    setCourses(courses.map(function (c) {
-      return c.code === code ? _objectSpread(_objectSpread({}, c), {}, {
-        status: "Active"
-      }) : c;
-    }));
-  };
-  var handleArchiveDepartment = function handleArchiveDepartment(name) {
-    setDepartments(departments.map(function (d) {
-      return d.name === name ? _objectSpread(_objectSpread({}, d), {}, {
-        status: "Archived"
-      }) : d;
-    }));
-  };
-  var handleActivateDepartment = function handleActivateDepartment(name) {
-    setDepartments(departments.map(function (d) {
-      return d.name === name ? _objectSpread(_objectSpread({}, d), {}, {
-        status: "Active"
-      }) : d;
-    }));
-  };
-  var handleArchiveYear = function handleArchiveYear(name) {
-    setAcademicYears(academicYears.map(function (y) {
-      return y.name === name ? _objectSpread(_objectSpread({}, y), {}, {
-        status: "Archived"
-      }) : y;
-    }));
-  };
-  var handleActivateYear = function handleActivateYear(name) {
-    setAcademicYears(academicYears.map(function (y) {
-      return y.name === name ? _objectSpread(_objectSpread({}, y), {}, {
-        status: "Planned"
-      }) : y;
-    }));
-  };
+  // REMOVE the three localStorage persist effects
+  // React.useEffect(() => { localStorage.setItem("departments", JSON.stringify(departments)); }, [departments]);
+  // React.useEffect(() => { localStorage.setItem("courses", JSON.stringify(courses)); }, [courses]);
+  // React.useEffect(() => { localStorage.setItem("academicYears", JSON.stringify(academicYears)); }, [academicYears]);
 
-  // --- DELETE HANDLERS (hard delete is permanent) ---
-  var handleDeleteDepartment = function handleDeleteDepartment(name) {
-    if (window.confirm("Delete department \"".concat(name, "\" permanently? This cannot be undone."))) {
-      var updated = departments.filter(function (d) {
-        return d.name !== name;
-      });
-      setDepartments(updated); // persisted by useEffect
-    }
-  };
-  var handleDeleteCourse = function handleDeleteCourse(code) {
-    if (window.confirm("Delete course \"".concat(code, "\" permanently? This cannot be undone."))) {
-      var updated = courses.filter(function (c) {
-        return c.code !== code;
-      });
-      setCourses(updated); // persisted by useEffect
-    }
-  };
-  var handleDeleteYear = function handleDeleteYear(name) {
-    if (window.confirm("Delete academic year \"".concat(name, "\" permanently? This cannot be undone."))) {
-      var updated = academicYears.filter(function (y) {
-        return y.name !== name;
-      });
-      setAcademicYears(updated); // persisted by useEffect
-    }
-  };
-
-  // Add/Edit handlers (prevent duplicate course code)
-  var handleAddCourse = function handleAddCourse(course) {
-    if (courses.some(function (c) {
-      return c.code === course.code;
-    })) {
-      alert("Course code \"".concat(course.code, "\" already exists."));
-      return;
-    }
-    setCourses([].concat(_toConsumableArray(courses), [course]));
-    setShowAddCourseModal(false);
-  };
-  var handleEditCourse = function handleEditCourse(course) {
-    setCourses(courses.map(function (c) {
-      return c.code === course.code ? course : c;
+  // UPDATE handlers to call API
+  var handleArchiveCourse = /*#__PURE__*/function () {
+    var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(code) {
+      var updated;
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.n) {
+          case 0:
+            _context2.n = 1;
+            return settingsApi.updateCourse(code, {
+              status: "Archived"
+            });
+          case 1:
+            updated = _context2.v;
+            setCourses(courses.map(function (c) {
+              return c.code === code ? updated : c;
+            }));
+          case 2:
+            return _context2.a(2);
+        }
+      }, _callee2);
     }));
-    setSelectedCourse(null);
-    setShowEditCourseModal(false);
-  };
-  var handleAddDepartment = function handleAddDepartment(dep) {
-    setDepartments([].concat(_toConsumableArray(departments), [dep]));
-    setShowAddDepartmentModal(false);
-  };
-  var handleEditDepartment = function handleEditDepartment(dep) {
-    setDepartments(departments.map(function (d) {
-      return d.name === dep.name ? dep : d;
+    return function handleArchiveCourse(_x2) {
+      return _ref2.apply(this, arguments);
+    };
+  }();
+  var handleActivateCourse = /*#__PURE__*/function () {
+    var _ref3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(code) {
+      var updated;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
+          case 0:
+            _context3.n = 1;
+            return settingsApi.updateCourse(code, {
+              status: "Active"
+            });
+          case 1:
+            updated = _context3.v;
+            setCourses(courses.map(function (c) {
+              return c.code === code ? updated : c;
+            }));
+          case 2:
+            return _context3.a(2);
+        }
+      }, _callee3);
     }));
-    setSelectedDepartment(null);
-    setShowEditDepartmentModal(false);
-  };
-  var handleAddYear = function handleAddYear(year) {
-    setAcademicYears([].concat(_toConsumableArray(academicYears), [year]));
-    setShowAddYearModal(false);
-  };
-  var handleEditYear = function handleEditYear(year) {
-    setAcademicYears(academicYears.map(function (y) {
-      return y.name === year.name ? year : y;
+    return function handleActivateCourse(_x3) {
+      return _ref3.apply(this, arguments);
+    };
+  }();
+  var handleArchiveDepartment = /*#__PURE__*/function () {
+    var _ref4 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(name) {
+      var updated;
+      return _regenerator().w(function (_context4) {
+        while (1) switch (_context4.n) {
+          case 0:
+            _context4.n = 1;
+            return settingsApi.updateDepartment(name, {
+              status: "Archived"
+            });
+          case 1:
+            updated = _context4.v;
+            setDepartments(departments.map(function (d) {
+              return d.name === name ? updated : d;
+            }));
+          case 2:
+            return _context4.a(2);
+        }
+      }, _callee4);
     }));
-    setSelectedYear(null);
-    setShowEditYearModal(false);
-  };
+    return function handleArchiveDepartment(_x4) {
+      return _ref4.apply(this, arguments);
+    };
+  }();
+  var handleActivateDepartment = /*#__PURE__*/function () {
+    var _ref5 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(name) {
+      var updated;
+      return _regenerator().w(function (_context5) {
+        while (1) switch (_context5.n) {
+          case 0:
+            _context5.n = 1;
+            return settingsApi.updateDepartment(name, {
+              status: "Active"
+            });
+          case 1:
+            updated = _context5.v;
+            setDepartments(departments.map(function (d) {
+              return d.name === name ? updated : d;
+            }));
+          case 2:
+            return _context5.a(2);
+        }
+      }, _callee5);
+    }));
+    return function handleActivateDepartment(_x5) {
+      return _ref5.apply(this, arguments);
+    };
+  }();
+  var handleArchiveYear = /*#__PURE__*/function () {
+    var _ref6 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(name) {
+      var updated;
+      return _regenerator().w(function (_context6) {
+        while (1) switch (_context6.n) {
+          case 0:
+            _context6.n = 1;
+            return settingsApi.updateYear(name, {
+              status: "Archived"
+            });
+          case 1:
+            updated = _context6.v;
+            setAcademicYears(academicYears.map(function (y) {
+              return y.name === name ? updated : y;
+            }));
+          case 2:
+            return _context6.a(2);
+        }
+      }, _callee6);
+    }));
+    return function handleArchiveYear(_x6) {
+      return _ref6.apply(this, arguments);
+    };
+  }();
+  var handleActivateYear = /*#__PURE__*/function () {
+    var _ref7 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(name) {
+      var updated;
+      return _regenerator().w(function (_context7) {
+        while (1) switch (_context7.n) {
+          case 0:
+            _context7.n = 1;
+            return settingsApi.updateYear(name, {
+              status: "Planned"
+            });
+          case 1:
+            updated = _context7.v;
+            setAcademicYears(academicYears.map(function (y) {
+              return y.name === name ? updated : y;
+            }));
+          case 2:
+            return _context7.a(2);
+        }
+      }, _callee7);
+    }));
+    return function handleActivateYear(_x7) {
+      return _ref7.apply(this, arguments);
+    };
+  }();
+  var handleDeleteDepartment = /*#__PURE__*/function () {
+    var _ref8 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8(name) {
+      return _regenerator().w(function (_context8) {
+        while (1) switch (_context8.n) {
+          case 0:
+            if (window.confirm("Delete department \"".concat(name, "\" permanently? This cannot be undone."))) {
+              _context8.n = 1;
+              break;
+            }
+            return _context8.a(2);
+          case 1:
+            _context8.n = 2;
+            return settingsApi.deleteDepartment(name);
+          case 2:
+            setDepartments(departments.filter(function (d) {
+              return d.name !== name;
+            }));
+          case 3:
+            return _context8.a(2);
+        }
+      }, _callee8);
+    }));
+    return function handleDeleteDepartment(_x8) {
+      return _ref8.apply(this, arguments);
+    };
+  }();
+  var handleDeleteCourse = /*#__PURE__*/function () {
+    var _ref9 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(code) {
+      return _regenerator().w(function (_context9) {
+        while (1) switch (_context9.n) {
+          case 0:
+            if (window.confirm("Delete course \"".concat(code, "\" permanently? This cannot be undone."))) {
+              _context9.n = 1;
+              break;
+            }
+            return _context9.a(2);
+          case 1:
+            _context9.n = 2;
+            return settingsApi.deleteCourse(code);
+          case 2:
+            setCourses(courses.filter(function (c) {
+              return c.code !== code;
+            }));
+          case 3:
+            return _context9.a(2);
+        }
+      }, _callee9);
+    }));
+    return function handleDeleteCourse(_x9) {
+      return _ref9.apply(this, arguments);
+    };
+  }();
+  var handleDeleteYear = /*#__PURE__*/function () {
+    var _ref0 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0(name) {
+      return _regenerator().w(function (_context0) {
+        while (1) switch (_context0.n) {
+          case 0:
+            if (window.confirm("Delete academic year \"".concat(name, "\" permanently? This cannot be undone."))) {
+              _context0.n = 1;
+              break;
+            }
+            return _context0.a(2);
+          case 1:
+            _context0.n = 2;
+            return settingsApi.deleteYear(name);
+          case 2:
+            setAcademicYears(academicYears.filter(function (y) {
+              return y.name !== name;
+            }));
+          case 3:
+            return _context0.a(2);
+        }
+      }, _callee0);
+    }));
+    return function handleDeleteYear(_x0) {
+      return _ref0.apply(this, arguments);
+    };
+  }();
+  var handleAddCourse = /*#__PURE__*/function () {
+    var _ref1 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1(course) {
+      var saved;
+      return _regenerator().w(function (_context1) {
+        while (1) switch (_context1.n) {
+          case 0:
+            if (!courses.some(function (c) {
+              return c.code === course.code;
+            })) {
+              _context1.n = 1;
+              break;
+            }
+            alert("Course code \"".concat(course.code, "\" already exists."));
+            return _context1.a(2);
+          case 1:
+            _context1.n = 2;
+            return settingsApi.createCourse(course);
+          case 2:
+            saved = _context1.v;
+            setCourses([].concat(_toConsumableArray(courses), [saved]));
+            setShowAddCourseModal(false);
+          case 3:
+            return _context1.a(2);
+        }
+      }, _callee1);
+    }));
+    return function handleAddCourse(_x1) {
+      return _ref1.apply(this, arguments);
+    };
+  }();
+  var handleEditCourse = /*#__PURE__*/function () {
+    var _ref10 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10(course) {
+      var saved;
+      return _regenerator().w(function (_context10) {
+        while (1) switch (_context10.n) {
+          case 0:
+            _context10.n = 1;
+            return settingsApi.updateCourse(course.code, course);
+          case 1:
+            saved = _context10.v;
+            setCourses(courses.map(function (c) {
+              return c.code === course.code ? saved : c;
+            }));
+            setSelectedCourse(null);
+            setShowEditCourseModal(false);
+          case 2:
+            return _context10.a(2);
+        }
+      }, _callee10);
+    }));
+    return function handleEditCourse(_x10) {
+      return _ref10.apply(this, arguments);
+    };
+  }();
+  var handleAddDepartment = /*#__PURE__*/function () {
+    var _ref11 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11(dep) {
+      var saved;
+      return _regenerator().w(function (_context11) {
+        while (1) switch (_context11.n) {
+          case 0:
+            _context11.n = 1;
+            return settingsApi.createDepartment(dep);
+          case 1:
+            saved = _context11.v;
+            setDepartments([].concat(_toConsumableArray(departments), [saved]));
+            setShowAddDepartmentModal(false);
+          case 2:
+            return _context11.a(2);
+        }
+      }, _callee11);
+    }));
+    return function handleAddDepartment(_x11) {
+      return _ref11.apply(this, arguments);
+    };
+  }();
+  var handleEditDepartment = /*#__PURE__*/function () {
+    var _ref12 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12(dep) {
+      var saved;
+      return _regenerator().w(function (_context12) {
+        while (1) switch (_context12.n) {
+          case 0:
+            _context12.n = 1;
+            return settingsApi.updateDepartment(dep.name, dep);
+          case 1:
+            saved = _context12.v;
+            setDepartments(departments.map(function (d) {
+              return d.name === dep.name ? saved : d;
+            }));
+            setSelectedDepartment(null);
+            setShowEditDepartmentModal(false);
+          case 2:
+            return _context12.a(2);
+        }
+      }, _callee12);
+    }));
+    return function handleEditDepartment(_x12) {
+      return _ref12.apply(this, arguments);
+    };
+  }();
+  var handleAddYear = /*#__PURE__*/function () {
+    var _ref13 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13(year) {
+      var saved;
+      return _regenerator().w(function (_context13) {
+        while (1) switch (_context13.n) {
+          case 0:
+            _context13.n = 1;
+            return settingsApi.createYear(year);
+          case 1:
+            saved = _context13.v;
+            setAcademicYears([].concat(_toConsumableArray(academicYears), [saved]));
+            setShowAddYearModal(false);
+          case 2:
+            return _context13.a(2);
+        }
+      }, _callee13);
+    }));
+    return function handleAddYear(_x13) {
+      return _ref13.apply(this, arguments);
+    };
+  }();
+  var handleEditYear = /*#__PURE__*/function () {
+    var _ref14 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14(year) {
+      var saved;
+      return _regenerator().w(function (_context14) {
+        while (1) switch (_context14.n) {
+          case 0:
+            _context14.n = 1;
+            return settingsApi.updateYear(year.name, year);
+          case 1:
+            saved = _context14.v;
+            setAcademicYears(academicYears.map(function (y) {
+              return y.name === year.name ? saved : y;
+            }));
+            setSelectedYear(null);
+            setShowEditYearModal(false);
+          case 2:
+            return _context14.a(2);
+        }
+      }, _callee14);
+    }));
+    return function handleEditYear(_x14) {
+      return _ref14.apply(this, arguments);
+    };
+  }();
 
   // Split active/archived
   var activeDepartments = departments.filter(function (d) {
@@ -89126,7 +89376,6 @@ function Settings() {
       marginTop: "24px"
     }
   }, activeCourses.map(function (course) {
-    var _course$department;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       key: course.code,
       style: {
@@ -89217,7 +89466,7 @@ function Settings() {
         fontSize: "14px",
         marginBottom: "4px"
       }
-    }, "Department: ", typeof course.department === "string" ? course.department : ((_course$department = course.department) === null || _course$department === void 0 ? void 0 : _course$department.name) || ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }, "Department: ", course.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
         fontSize: "14px",
         marginBottom: "4px"
@@ -89767,10 +90016,10 @@ function Settings() {
 }
 
 // Modal component
-function Modal(_ref2) {
-  var title = _ref2.title,
-    children = _ref2.children,
-    onClose = _ref2.onClose;
+function Modal(_ref15) {
+  var title = _ref15.title,
+    children = _ref15.children,
+    onClose = _ref15.onClose;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       position: "fixed",
@@ -89809,11 +90058,11 @@ function Modal(_ref2) {
 }
 
 // Course Form component
-function CourseForm(_ref3) {
-  var initial = _ref3.initial,
-    departments = _ref3.departments,
-    _onSubmit = _ref3.onSubmit,
-    onCancel = _ref3.onCancel;
+function CourseForm(_ref16) {
+  var initial = _ref16.initial,
+    departments = _ref16.departments,
+    _onSubmit = _ref16.onSubmit,
+    onCancel = _ref16.onCancel;
   var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       code: "",
@@ -89930,10 +90179,10 @@ function CourseForm(_ref3) {
 }
 
 // Department Form component
-function DepartmentForm(_ref4) {
-  var initial = _ref4.initial,
-    _onSubmit2 = _ref4.onSubmit,
-    onCancel = _ref4.onCancel;
+function DepartmentForm(_ref17) {
+  var initial = _ref17.initial,
+    _onSubmit2 = _ref17.onSubmit,
+    onCancel = _ref17.onCancel;
   var _useState29 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       established: "",
@@ -90059,10 +90308,10 @@ function DepartmentForm(_ref4) {
 }
 
 // Academic Year Form component
-function AcademicYearForm(_ref5) {
-  var initial = _ref5.initial,
-    _onSubmit3 = _ref5.onSubmit,
-    onCancel = _ref5.onCancel;
+function AcademicYearForm(_ref18) {
+  var initial = _ref18.initial,
+    _onSubmit3 = _ref18.onSubmit,
+    onCancel = _ref18.onCancel;
   var _useState31 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       status: "Planned",
@@ -90355,11 +90604,38 @@ function StudentManagement() {
     });
   }, []);
 
-  // Fetch departments/courses/years from localStorage (update if changed)
+  // Fetch departments, courses, and academic years from API
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    setDepartments(getDepartments());
-    setCourses(getCourses());
-    setAcademicYears(getAcademicYears());
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/departments").then(function (r) {
+      var list = (r.data || []).filter(function (d) {
+        return d.status === "Active";
+      }).map(function (d) {
+        return d.name;
+      });
+      setDepartments(list);
+      // optional mirror:
+      localStorage.setItem("departments", JSON.stringify(r.data || []));
+    });
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/courses").then(function (r) {
+      var list = (r.data || []).filter(function (c) {
+        return c.status === "Active";
+      }).map(function (c) {
+        return c.name;
+      });
+      setCourses(list);
+      // optional mirror:
+      localStorage.setItem("courses", JSON.stringify(r.data || []));
+    });
+    axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/academic-years").then(function (r) {
+      var list = (r.data || []).filter(function (y) {
+        return y.status !== "Archived";
+      }).map(function (y) {
+        return y.name;
+      });
+      setAcademicYears(list);
+      // optional mirror:
+      localStorage.setItem("academicYears", JSON.stringify(r.data || []));
+    });
   }, []);
 
   // Add student handler (API)

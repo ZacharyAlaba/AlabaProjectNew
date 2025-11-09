@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Department;
 use Illuminate\Http\Request;
 
@@ -27,12 +26,12 @@ class DepartmentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'=>'required|string|unique:departments,name',
-            'established'=>'nullable|digits:4',
-            'head'=>'nullable|string',
-            'faculty_count'=>'nullable|integer|min:0',
-            'student_count'=>'nullable|integer|min:0',
-            'status'=>'in:Active,Archived'
+            'name' => 'required|string|unique:departments,name',
+            'established' => 'required|integer',
+            'head' => 'required|string',
+            'faculty' => 'required|integer',
+            'students' => 'required|integer',
+            'status' => 'required|string',
         ]);
         return Department::create($data);
     }
@@ -40,53 +39,44 @@ class DepartmentController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  \App\Models\Department  $department
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Department $department)
     {
-        //
+        return $department;
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  \App\Models\Department  $department
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Department $department)
     {
         $data = $request->validate([
-            'established'=>'nullable|digits:4',
-            'head'=>'nullable|string',
-            'faculty_count'=>'nullable|integer|min:0',
-            'student_count'=>'nullable|integer|min:0',
-            'status'=>'in:Active,Archived'
+            'established' => 'sometimes|integer',
+            'head' => 'sometimes|string',
+            'faculty' => 'sometimes|integer',
+            'students' => 'sometimes|integer',
+            'status' => 'sometimes|string',
+            'name' => 'sometimes|string|unique:departments,name,' . $department->id,
         ]);
         $department->update($data);
-        return $department->fresh();
+        return $department;
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  \App\Models\Department  $department
      * @return \Illuminate\Http\Response
      */
     public function destroy(Department $department)
     {
         $department->delete();
         return response()->noContent();
-    }
-
-    public function archive(Department $department) {
-        $department->update(['status'=>'Archived']);
-        return response()->json(['ok'=>true]);
-    }
-
-    public function activate(Department $department) {
-        $department->update(['status'=>'Active']);
-        return response()->json(['ok'=>true]);
     }
 }

@@ -89,11 +89,26 @@ export default function StudentManagement() {
         });
     }, []);
 
-    // Fetch departments/courses/years from localStorage (update if changed)
+    // Fetch departments, courses, and academic years from API
     useEffect(() => {
-        setDepartments(getDepartments());
-        setCourses(getCourses());
-        setAcademicYears(getAcademicYears());
+        axios.get("/api/departments").then(r => {
+            const list = (r.data || []).filter(d => d.status === "Active").map(d => d.name);
+            setDepartments(list);
+            // optional mirror:
+            localStorage.setItem("departments", JSON.stringify(r.data || []));
+        });
+        axios.get("/api/courses").then(r => {
+            const list = (r.data || []).filter(c => c.status === "Active").map(c => c.name);
+            setCourses(list);
+            // optional mirror:
+            localStorage.setItem("courses", JSON.stringify(r.data || []));
+        });
+        axios.get("/api/academic-years").then(r => {
+            const list = (r.data || []).filter(y => y.status !== "Archived").map(y => y.name);
+            setAcademicYears(list);
+            // optional mirror:
+            localStorage.setItem("academicYears", JSON.stringify(r.data || []));
+        });
     }, []);
 
     // Add student handler (API)

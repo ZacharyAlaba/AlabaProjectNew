@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    protected $fillable = [
-        'name','code','department_id','credits','duration','status'
-    ];
+    use HasFactory;
 
-    public function department() {
-        return $this->belongsTo(Department::class);
+    protected $fillable = ['name','code','department','credits','duration','status'];
+
+    // Allow /api/courses/{code}
+    public function getRouteKeyName(): string {
+        return 'code';
     }
 }
