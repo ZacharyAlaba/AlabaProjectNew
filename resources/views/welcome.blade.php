@@ -9,12 +9,15 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
-    <div id="root"></div> 
+    <div id="root"></div>
     <script>
         window.Laravel = {
             csrfToken: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         };
     </script>
     <script src="{{ asset('js/app.js') }}"></script>
+    <!-- PDF libs (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 </body>
 </html>

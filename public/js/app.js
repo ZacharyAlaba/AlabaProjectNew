@@ -85474,10 +85474,11 @@ function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" 
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 
 
 
@@ -85504,6 +85505,45 @@ function getDepartments() {
   }
   return [];
 }
+
+// NEW: academic years loader (exclude Archived)
+function getAcademicYears() {
+  var stored = localStorage.getItem("academicYears");
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored).filter(function (y) {
+      return y.status !== "Archived";
+    });
+  } catch (_unused) {
+    return [];
+  }
+}
+
+// Helper to map joined date to academic year (optional)
+function inferAcademicYear(joinedDate, years) {
+  if (!joinedDate) return "";
+  var ts = Date.parse(joinedDate);
+  if (isNaN(ts)) return "";
+  var _iterator = _createForOfIteratorHelper(years),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var y = _step.value;
+      if (y.start && y.end) {
+        var s = Date.parse(y.start);
+        var e = Date.parse(y.end);
+        if (!isNaN(s) && !isNaN(e) && ts >= s && ts <= e) {
+          return y.name;
+        }
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return "";
+}
 function FacultyManagement() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
@@ -85521,55 +85561,69 @@ function FacultyManagement() {
     _useState8 = _slicedToArray(_useState7, 2),
     departments = _useState8[0],
     setDepartments = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    _useState0 = _slicedToArray(_useState9, 2),
+    academicYears = _useState0[0],
+    setAcademicYears = _useState0[1]; // NEW
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       name: "",
       position: "",
       department: "",
       email: "",
       phone: "",
-      joined: "",
+      academicYear: "",
+      // NEW replaces joined
       specialization: "",
       status: "ACTIVE"
     }),
-    _useState0 = _slicedToArray(_useState9, 2),
-    formData = _useState0[0],
-    setFormData = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
     _useState10 = _slicedToArray(_useState1, 2),
-    showEditModal = _useState10[0],
-    setShowEditModal = _useState10[1];
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    formData = _useState10[0],
+    setFormData = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
     _useState12 = _slicedToArray(_useState11, 2),
-    selectedFaculty = _useState12[0],
-    setSelectedFaculty = _useState12[1];
+    showEditModal = _useState12[0],
+    setShowEditModal = _useState12[1];
   var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
     _useState14 = _slicedToArray(_useState13, 2),
-    editFaculty = _useState14[0],
-    setEditFaculty = _useState14[1];
-  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("All Departments"),
+    selectedFaculty = _useState14[0],
+    setSelectedFaculty = _useState14[1];
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
     _useState16 = _slicedToArray(_useState15, 2),
-    departmentFilter = _useState16[0],
-    setDepartmentFilter = _useState16[1];
-  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("ALL"),
+    editFaculty = _useState16[0],
+    setEditFaculty = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("All Departments"),
     _useState18 = _slicedToArray(_useState17, 2),
-    statusFilter = _useState18[0],
-    setStatusFilter = _useState18[1];
-  // NEW: search query
-  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    departmentFilter = _useState18[0],
+    setDepartmentFilter = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("ALL"),
     _useState20 = _slicedToArray(_useState19, 2),
-    searchQuery = _useState20[0],
-    setSearchQuery = _useState20[1];
+    statusFilter = _useState20[0],
+    setStatusFilter = _useState20[1];
+  // NEW: search query
+  var _useState21 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    _useState22 = _slicedToArray(_useState21, 2),
+    searchQuery = _useState22[0],
+    setSearchQuery = _useState22[1];
   var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_3__.getProfile)();
   var menuRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/faculty").then(function (res) {
       var data = Array.isArray(res.data) ? res.data : [];
-      setFaculty(data);
-      localStorage.setItem("faculty", JSON.stringify(data)); // Sync to localStorage
+      // Map joined -> academicYear if missing
+      var mapped = data.map(function (f) {
+        return _objectSpread(_objectSpread({}, f), {}, {
+          academicYear: f.academicYear || inferAcademicYear(f.joined, academicYears),
+          rank: f.rank || f.position
+        });
+      });
+      setFaculty(mapped);
+      localStorage.setItem("faculty", JSON.stringify(mapped));
     });
-  }, []);
+  }, [academicYears]); // re-run if academic years load later
+
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     setDepartments(getDepartments());
+    setAcademicYears(getAcademicYears()); // keep in sync
   }, []);
   var handleChange = function handleChange(e) {
     setFormData(_objectSpread(_objectSpread({}, formData), {}, _defineProperty({}, e.target.name, e.target.value)));
@@ -85578,18 +85632,27 @@ function FacultyManagement() {
   // Add faculty handler (API)
   var handleAddFaculty = /*#__PURE__*/function () {
     var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee(newFaculty) {
-      var res, updated;
+      var selYear, res, data, updated;
       return _regenerator().w(function (_context) {
         while (1) switch (_context.n) {
           case 0:
+            newFaculty.rank = newFaculty.position;
+            // Keep a joined placeholder (first day of academic year) for backend compatibility
+            selYear = academicYears.find(function (y) {
+              return y.name === newFaculty.academicYear;
+            });
+            newFaculty.joined = (selYear === null || selYear === void 0 ? void 0 : selYear.start) || ""; // backend may expect joined
             _context.n = 1;
             return axios__WEBPACK_IMPORTED_MODULE_1___default().post("/api/faculty", newFaculty);
           case 1:
             res = _context.v;
-            updated = [].concat(_toConsumableArray(faculty), [res.data]);
+            data = _objectSpread(_objectSpread({}, res.data), {}, {
+              rank: newFaculty.rank,
+              academicYear: newFaculty.academicYear
+            });
+            updated = [].concat(_toConsumableArray(faculty), [data]);
             setFaculty(updated);
-            localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
-            // --- LOG ACTIVITY ---
+            localStorage.setItem("faculty", JSON.stringify(updated));
             logActivity("faculty", "New faculty added: ".concat(newFaculty.name, " (").concat(newFaculty.department, ")"));
             setShowAddModal(false);
           case 2:
@@ -85640,23 +85703,34 @@ function FacultyManagement() {
     setShowEditModal(true);
     setMenuOpenId(null);
   };
+
+  // Edit submit
   var handleEditSubmit = /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(e) {
-      var res, updated;
+      var selYear, payload, res, updated;
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.n) {
           case 0:
             e.preventDefault();
+            selYear = academicYears.find(function (y) {
+              return y.name === editFaculty.academicYear;
+            });
+            payload = _objectSpread(_objectSpread({}, editFaculty), {}, {
+              rank: editFaculty.position,
+              joined: (selYear === null || selYear === void 0 ? void 0 : selYear.start) || editFaculty.joined || ""
+            });
             _context3.n = 1;
-            return axios__WEBPACK_IMPORTED_MODULE_1___default().put("/api/faculty/".concat(editFaculty.id), editFaculty);
+            return axios__WEBPACK_IMPORTED_MODULE_1___default().put("/api/faculty/".concat(editFaculty.id), payload);
           case 1:
             res = _context3.v;
             updated = faculty.map(function (f) {
-              return f.id === editFaculty.id ? res.data : f;
+              return f.id === editFaculty.id ? _objectSpread(_objectSpread({}, res.data), {}, {
+                rank: payload.rank,
+                academicYear: editFaculty.academicYear
+              }) : f;
             });
             setFaculty(updated);
-            localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
-            // --- LOG ACTIVITY ---
+            localStorage.setItem("faculty", JSON.stringify(updated));
             logActivity("faculty", "Faculty updated: ".concat(editFaculty.name, " (").concat(editFaculty.department, ")"));
             setShowEditModal(false);
             setEditFaculty(null);
@@ -85907,9 +85981,7 @@ function FacultyManagement() {
       className: "fas fa-envelope"
     }), " ", fac.email), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
       className: "fas fa-phone"
-    }), " ", fac.phone), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
-      className: "fas fa-calendar"
-    }), " Joined ", fac.joined), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "ID: ", fac.faculty_id), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }), " ", fac.phone), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Academic Year: ", fac.academicYear || "-"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "ID: ", fac.faculty_id), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
         borderTop: "1px solid #333",
         margin: "10px 0"
@@ -85962,7 +86034,7 @@ function FacultyManagement() {
     onClick: function onClick() {
       return setSelectedFaculty(null);
     }
-  }, "\xD7"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, selectedFaculty.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Position: ", selectedFaculty.position), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Department: ", selectedFaculty.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Email: ", selectedFaculty.email), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Phone: ", selectedFaculty.phone), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Joined: ", selectedFaculty.joined), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "ID: ", selectedFaculty.faculty_id), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Specialization: ", selectedFaculty.specialization), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Status: ", selectedFaculty.status))), showEditModal && editFaculty && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, "\xD7"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", null, selectedFaculty.name), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Position: ", selectedFaculty.position), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Department: ", selectedFaculty.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Email: ", selectedFaculty.email), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Phone: ", selectedFaculty.phone), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Academic Year: ", selectedFaculty.academicYear || "-"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "ID: ", selectedFaculty.faculty_id), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Specialization: ", selectedFaculty.specialization), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Status: ", selectedFaculty.status))), showEditModal && editFaculty && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "modal-overlay",
     style: {
       position: "fixed",
@@ -86016,9 +86088,8 @@ function FacultyManagement() {
         name: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "position",
-    placeholder: "Position",
     required: true,
     style: {
       width: "100%",
@@ -86030,7 +86101,15 @@ function FacultyManagement() {
         position: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Rank"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Professor"
+  }, "Professor"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Associate Professor"
+  }, "Associate Professor"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Assistant Professor"
+  }, "Assistant Professor")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "department",
     required: true,
     style: {
@@ -86078,21 +86157,27 @@ function FacultyManagement() {
         phone: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
-    name: "joined",
-    placeholder: "Joined (YYYY-MM-DD)",
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "academicYear",
     required: true,
     style: {
       width: "100%",
       marginBottom: "8px"
     },
-    value: editFaculty.joined,
+    value: editFaculty.academicYear || "",
     onChange: function onChange(e) {
       return setEditFaculty(_objectSpread(_objectSpread({}, editFaculty), {}, {
-        joined: e.target.value
+        academicYear: e.target.value
       }));
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Academic Year"), academicYears.map(function (y) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+      key: y.name,
+      value: y.name
+    }, y.name);
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
     name: "id",
     placeholder: "Faculty ID",
     required: true,
@@ -86197,9 +86282,10 @@ function FacultyManagement() {
         department: form.department.value,
         email: form.email.value,
         phone: form.phone.value,
-        joined: form.joined.value,
+        academicYear: form.academicYear.value,
+        // NEW
         specialization: form.specialization.value,
-        status: form.status.value // <-- status from dropdown
+        status: form.status.value
       };
       handleAddFaculty(newFaculty);
     }
@@ -86211,15 +86297,22 @@ function FacultyManagement() {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "position",
-    placeholder: "Position",
     required: true,
     style: {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Position"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Professor"
+  }, "Professor"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Associate Professor"
+  }, "Associate Professor"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Assistant Professor"
+  }, "Assistant Professor")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     name: "department",
     required: true,
     style: {
@@ -86249,15 +86342,21 @@ function FacultyManagement() {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
-    name: "joined",
-    placeholder: "Joined (YYYY-MM-DD)",
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
+    name: "academicYear",
     required: true,
     style: {
       width: "100%",
       marginBottom: "8px"
     }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: ""
+  }, "Select Academic Joined Year"), academicYears.map(function (y) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+      key: y.name,
+      value: y.name
+    }, y.name);
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
     name: "specialization",
     placeholder: "Specialization",
     required: true,
@@ -86389,6 +86488,26 @@ function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" !=
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
+
+// Add defaults + a helper to read/write credentials
+var DEFAULT_EMAIL = "zachary.alaba@urios.edu.ph";
+var DEFAULT_PASSWORD = "Janacute123";
+function getAuth() {
+  var email = localStorage.getItem("authEmail");
+  var password = localStorage.getItem("authPassword");
+  if (!email) {
+    email = DEFAULT_EMAIL;
+    localStorage.setItem("authEmail", email);
+  }
+  if (!password) {
+    password = DEFAULT_PASSWORD;
+    localStorage.setItem("authPassword", password);
+  }
+  return {
+    email: email,
+    password: password
+  };
+}
 function Login() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
     _useState2 = _slicedToArray(_useState, 2),
@@ -86406,7 +86525,10 @@ function Login() {
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
     setError(null);
-    if (email === "zachary.alaba@urios.edu.ph" && password === "Janacute123") {
+    var _getAuth = getAuth(),
+      storedEmail = _getAuth.email,
+      storedPassword = _getAuth.password;
+    if (email === storedEmail && password === storedPassword) {
       navigate("/admin");
     } else {
       setError("Invalid credentials");
@@ -86498,6 +86620,24 @@ var initialProfile = {
   tags: ["INFORMATION TECHNOLOGY", "ADM-2020-001"],
   profileImage: null // <-- add this
 };
+
+// Defaults and helpers to share credentials with Login.js
+var DEFAULT_EMAIL = "zachary.alaba@urios.edu.ph";
+var DEFAULT_PASSWORD = "Janacute123";
+function getAuth() {
+  var email = localStorage.getItem("authEmail") || DEFAULT_EMAIL;
+  var password = localStorage.getItem("authPassword") || DEFAULT_PASSWORD;
+  return {
+    email: email,
+    password: password
+  };
+}
+function setAuth(_ref) {
+  var email = _ref.email,
+    password = _ref.password;
+  if (email) localStorage.setItem("authEmail", email);
+  if (password) localStorage.setItem("authPassword", password);
+}
 function getProfile() {
   var stored = localStorage.getItem("profile");
   return stored ? JSON.parse(stored) : initialProfile;
@@ -86516,31 +86656,128 @@ function MyProfile() {
     form = _useState6[0],
     setForm = _useState6[1];
   var fileInputRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // State for Change Password UI
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
+      email: getAuth().email,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    }),
+    _useState8 = _slicedToArray(_useState7, 2),
+    pwdForm = _useState8[0],
+    setPwdForm = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    _useState0 = _slicedToArray(_useState9, 2),
+    pwdError = _useState0[0],
+    setPwdError = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    _useState10 = _slicedToArray(_useState1, 2),
+    pwdSuccess = _useState10[0],
+    setPwdSuccess = _useState10[1];
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     localStorage.setItem("profile", JSON.stringify(profile));
   }, [profile]);
   var handleEdit = function handleEdit() {
     setForm(profile);
+    // initialize change-password fields from stored auth
+    var _getAuth = getAuth(),
+      email = _getAuth.email;
+    setPwdForm({
+      email: email,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+    setPwdError("");
+    setPwdSuccess("");
     setEditing(true);
   };
   var handleCancel = function handleCancel() {
     setEditing(false);
+    // reset password form
+    var _getAuth2 = getAuth(),
+      email = _getAuth2.email;
+    setPwdForm({
+      email: email,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
+    setPwdError("");
+    setPwdSuccess("");
   };
   var handleSave = function handleSave() {
-    // Remove any previous employeeId from tags and add the new one (only once)
+    // 1) validate/apply login credential changes
+    var _getAuth3 = getAuth(),
+      storedEmail = _getAuth3.email,
+      storedPwd = _getAuth3.password;
+    var wantPwdChange = pwdForm.currentPassword || pwdForm.newPassword || pwdForm.confirmPassword;
+    var nextEmail = pwdForm.email && pwdForm.email.trim() ? pwdForm.email.trim() : storedEmail;
+    if (wantPwdChange) {
+      if (pwdForm.currentPassword !== storedPwd) {
+        setPwdError("Current password is incorrect.");
+        return; // keep editing so user can fix
+      }
+      if (!pwdForm.newPassword || pwdForm.newPassword.length < 6) {
+        setPwdError("New password must be at least 6 characters.");
+        return;
+      }
+      if (pwdForm.newPassword !== pwdForm.confirmPassword) {
+        setPwdError("New passwords do not match.");
+        return;
+      }
+      setAuth({
+        email: nextEmail,
+        password: pwdForm.newPassword
+      });
+    } else {
+      // email-only change
+      if (nextEmail !== storedEmail) {
+        setAuth({
+          email: nextEmail
+        });
+      }
+    }
+    setPwdError("");
+    setPwdSuccess("Credentials updated.");
+
+    // 2) save profile (sync profile.email to login email)
     var filteredTags = form.tags.filter(function (tag) {
       return tag !== profile.employeeId && tag !== form.employeeId;
     });
-    // Find any tag that looks like an employee ID (starts with ADM- or ALABA- etc)
     var tagsWithoutEmpId = filteredTags.filter(function (tag) {
       return !/^([A-Z]+-)?\d{4}-\d{3,}$/.test(tag);
     });
     var updatedTags = [].concat(_toConsumableArray(tagsWithoutEmpId), [form.employeeId]);
     setProfile(_objectSpread(_objectSpread({}, form), {}, {
+      email: nextEmail,
       tags: updatedTags
     }));
     setEditing(false);
+
+    // clear password fields after save
+    setPwdForm({
+      email: nextEmail,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    });
   };
+  var inputStyle = {
+    width: "100%",
+    marginBottom: "8px",
+    padding: "8px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#23234a",
+    color: "#fff",
+    fontSize: "15px"
+  };
+  var disabledInputStyle = _objectSpread(_objectSpread({}, inputStyle), {}, {
+    opacity: 0.6,
+    cursor: "not-allowed"
+  });
 
   // Image upload handler
   var handleImageClick = function handleImageClick() {
@@ -86560,16 +86797,10 @@ function MyProfile() {
       reader.readAsDataURL(file);
     }
   };
-  var inputStyle = {
-    width: "100%",
-    marginBottom: "8px",
-    padding: "8px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#23234a",
-    color: "#fff",
-    fontSize: "15px"
-  };
+
+  // Change Password: handled by handleEdit/handleSave; no extra handlers needed.
+  // Removed resetPwdForm, saveNewPassword, and the duplicate "const inputStyle = { ... }" here.
+
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       padding: "32px"
@@ -86951,16 +87182,25 @@ function MyProfile() {
     }
   }) : profile.bio))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
+      display: "flex",
+      alignItems: "stretch",
+      gap: "16px",
+      marginBottom: "32px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
       background: "#181826",
       borderRadius: "16px",
       padding: "24px",
       color: "#fff",
       minWidth: "320px",
-      maxWidth: "600px"
+      maxWidth: "600px",
+      flexShrink: 0
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
     style: {
-      color: "#ef4444"
+      color: "#ef4444",
+      margin: 0
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
     className: "fas fa-phone"
@@ -86988,7 +87228,90 @@ function MyProfile() {
         })
       }));
     }
-  }) : profile.emergencyContact.phone)), !editing && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+  }) : profile.emergencyContact.phone)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      flex: 1,
+      background: "#181826",
+      borderRadius: "16px",
+      padding: "24px",
+      color: "#fff",
+      minWidth: "340px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      color: "#a855f7",
+      marginTop: 0,
+      marginBottom: "12px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
+    className: "fas fa-lock"
+  }), " Update Login Credentials"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("label", {
+    style: {
+      fontSize: "13px"
+    }
+  }, "Login Email (username)"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    style: editing ? inputStyle : disabledInputStyle,
+    type: "email",
+    value: pwdForm.email,
+    onChange: function onChange(e) {
+      return setPwdForm(_objectSpread(_objectSpread({}, pwdForm), {}, {
+        email: e.target.value
+      }));
+    },
+    disabled: !editing
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("label", {
+    style: {
+      fontSize: "13px"
+    }
+  }, "Current Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    style: editing ? inputStyle : disabledInputStyle,
+    type: "password",
+    value: pwdForm.currentPassword,
+    onChange: function onChange(e) {
+      return setPwdForm(_objectSpread(_objectSpread({}, pwdForm), {}, {
+        currentPassword: e.target.value
+      }));
+    },
+    disabled: !editing
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("label", {
+    style: {
+      fontSize: "13px"
+    }
+  }, "New Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    style: editing ? inputStyle : disabledInputStyle,
+    type: "password",
+    value: pwdForm.newPassword,
+    onChange: function onChange(e) {
+      return setPwdForm(_objectSpread(_objectSpread({}, pwdForm), {}, {
+        newPassword: e.target.value
+      }));
+    },
+    disabled: !editing
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("label", {
+    style: {
+      fontSize: "13px"
+    }
+  }, "Confirm New Password"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("input", {
+    style: editing ? inputStyle : disabledInputStyle,
+    type: "password",
+    value: pwdForm.confirmPassword,
+    onChange: function onChange(e) {
+      return setPwdForm(_objectSpread(_objectSpread({}, pwdForm), {}, {
+        confirmPassword: e.target.value
+      }));
+    },
+    disabled: !editing
+  }), pwdError && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      color: "#f87171",
+      marginTop: "4px"
+    }
+  }, pwdError), pwdSuccess && editing === false && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      color: "#34d399",
+      marginTop: "4px"
+    }
+  }, pwdSuccess))), !editing && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     style: {
       background: "#a855f7",
       color: "#fff",
@@ -87125,8 +87448,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react-chartjs-2 */ "./node_modules/react-chartjs-2/dist/index.js");
 /* harmony import */ var chart_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! chart.js */ "./node_modules/chart.js/dist/chart.js");
-/* harmony import */ var _ProfileWidget__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ProfileWidget */ "./resources/js/components/ProfileWidget.js");
-/* harmony import */ var _MyProfile__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./MyProfile */ "./resources/js/components/MyProfile.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -87136,236 +87467,465 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 
 
-
-
 chart_js__WEBPACK_IMPORTED_MODULE_2__.Chart.register(chart_js__WEBPACK_IMPORTED_MODULE_2__.CategoryScale, chart_js__WEBPACK_IMPORTED_MODULE_2__.LinearScale, chart_js__WEBPACK_IMPORTED_MODULE_2__.BarElement, chart_js__WEBPACK_IMPORTED_MODULE_2__.ArcElement, chart_js__WEBPACK_IMPORTED_MODULE_2__.Title, chart_js__WEBPACK_IMPORTED_MODULE_2__.Tooltip, chart_js__WEBPACK_IMPORTED_MODULE_2__.Legend);
 
-// Utility functions for live data
+// ---------- Data helpers ----------
 function getActiveCourses() {
   var stored = localStorage.getItem("courses");
-  if (stored) {
+  if (!stored) return [];
+  try {
     return JSON.parse(stored).filter(function (c) {
       return c.status === "Active";
     }).map(function (c) {
       return c.name;
     });
+  } catch (_unused) {
+    return [];
   }
-  return [];
 }
 function getActiveDepartments() {
   var stored = localStorage.getItem("departments");
-  if (stored) {
+  if (!stored) return [];
+  try {
     return JSON.parse(stored).filter(function (d) {
       return d.status === "Active";
     }).map(function (d) {
       return d.name;
     });
+  } catch (_unused2) {
+    return [];
   }
-  return [];
 }
 function getAcademicYears() {
   var stored = localStorage.getItem("academicYears");
-  if (stored) {
-    // Show all years, not just active
+  if (!stored) return [];
+  try {
     return JSON.parse(stored).map(function (y) {
       return y.name;
     });
+  } catch (_unused3) {
+    return [];
   }
-  return [];
 }
 function getStudents() {
   var stored = localStorage.getItem("students");
-  if (stored) {
+  if (!stored) return [];
+  try {
     return JSON.parse(stored);
+  } catch (_unused4) {
+    return [];
   }
-  return [];
 }
 function getFaculty() {
   var stored = localStorage.getItem("faculty");
-  if (stored) {
+  if (!stored) return [];
+  try {
     return JSON.parse(stored);
+  } catch (_unused5) {
+    return [];
   }
-  return [];
 }
+
+// ---------- Component ----------
 function Reports() {
+  // Filters
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("Student Report"),
     _useState2 = _slicedToArray(_useState, 2),
     reportType = _useState2[0],
     setReportType = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveCourses()),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("All Courses"),
     _useState4 = _slicedToArray(_useState3, 2),
-    courses = _useState4[0],
-    setCourses = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveDepartments()),
+    course = _useState4[0],
+    setCourse = _useState4[1];
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
     _useState6 = _slicedToArray(_useState5, 2),
-    departments = _useState6[0],
-    setDepartments = _useState6[1];
-  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
+    academicYear = _useState6[0],
+    setAcademicYear = _useState6[1];
+
+  // Master data
+  var _useState7 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveCourses()),
     _useState8 = _slicedToArray(_useState7, 2),
-    academicYears = _useState8[0],
-    setAcademicYears = _useState8[1];
-  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getStudents()),
+    courses = _useState8[0],
+    setCourses = _useState8[1];
+  var _useState9 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getActiveDepartments()),
     _useState0 = _slicedToArray(_useState9, 2),
-    students = _useState0[0],
-    setStudents = _useState0[1];
-  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getFaculty()),
+    departments = _useState0[0],
+    setDepartments = _useState0[1];
+  var _useState1 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getAcademicYears()),
     _useState10 = _slicedToArray(_useState1, 2),
-    faculty = _useState10[0],
-    setFaculty = _useState10[1];
-
-  // Filters (for dropdowns)
-  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("All Courses"),
+    academicYears = _useState10[0],
+    setAcademicYears = _useState10[1];
+  var _useState11 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getStudents()),
     _useState12 = _slicedToArray(_useState11, 2),
-    course = _useState12[0],
-    setCourse = _useState12[1];
-  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    students = _useState12[0],
+    setStudents = _useState12[1];
+  var _useState13 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(getFaculty()),
     _useState14 = _slicedToArray(_useState13, 2),
-    academicYear = _useState14[0],
-    setAcademicYear = _useState14[1];
-  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
-      reportType: "Student Report",
-      course: "All Courses",
-      academicYear: ""
-    }),
-    _useState16 = _slicedToArray(_useState15, 2),
-    reportFilters = _useState16[0],
-    setReportFilters = _useState16[1];
+    faculty = _useState14[0],
+    setFaculty = _useState14[1];
 
-  // Live update on localStorage change
+  // Report state
+  var _useState15 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(null),
+    _useState16 = _slicedToArray(_useState15, 2),
+    generatedAt = _useState16[0],
+    setGeneratedAt = _useState16[1];
+  var _useState17 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(""),
+    _useState18 = _slicedToArray(_useState17, 2),
+    reportId = _useState18[0],
+    setReportId = _useState18[1];
+  var _useState19 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(false),
+    _useState20 = _slicedToArray(_useState19, 2),
+    downloading = _useState20[0],
+    setDownloading = _useState20[1];
+  var reportRef = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+
+  // Keep lists in sync if localStorage changes
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    function updateLists() {
+    function refresh() {
       setCourses(getActiveCourses());
       setDepartments(getActiveDepartments());
       setAcademicYears(getAcademicYears());
       setStudents(getStudents());
       setFaculty(getFaculty());
     }
-    window.addEventListener("storage", updateLists);
-    updateLists();
+    window.addEventListener("storage", refresh);
+    refresh();
     return function () {
-      return window.removeEventListener("storage", updateLists);
+      return window.removeEventListener("storage", refresh);
     };
   }, []);
-
-  // Update default filters if academic years change
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    if (academicYears.length > 0 && !academicYears.includes(academicYear)) {
+    if (academicYears.length && !academicYears.includes(academicYear)) {
       setAcademicYear(academicYears[0]);
     }
   }, [academicYears]);
 
-  // Optional: auto-update report on dropdown change
-  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
-    setReportFilters({
+  // Derived filters
+  var activeFilters = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return {
       reportType: reportType,
       course: course,
-      academicYear: academicYear
-    });
+      academicYear: (academicYear === null || academicYear === void 0 ? void 0 : academicYear.trim()) || ""
+    };
   }, [reportType, course, academicYear]);
 
-  // Student count by course (filtered by year and course)
-  var filteredStudents = students.filter(function (s) {
-    return (reportFilters.academicYear ? s.academicYear === reportFilters.academicYear : true) && (reportFilters.course === "All Courses" ? true : s.course === reportFilters.course);
-  });
-  var studentByCourse = courses.map(function (c) {
+  // Students filtered by year & course
+  var filteredStudents = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return students.filter(function (s) {
-      return (reportFilters.academicYear ? s.academicYear === reportFilters.academicYear : true) && s.course === c;
-    }).length;
-  });
+      return (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) && (activeFilters.course === "All Courses" ? true : s.course === activeFilters.course);
+    });
+  }, [students, activeFilters]);
 
-  // Faculty count by department
-  var facultyByDept = departments.map(function (d) {
+  // NEW: Faculty filtered by year (only restrict if a year is chosen)
+  var filteredFaculty = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return faculty.filter(function (f) {
-      return f.department === d;
-    }).length;
-  });
-
-  // Student report details table
-  var studentDetails = courses.map(function (c) {
-    var courseStudents = students.filter(function (s) {
-      return (reportFilters.academicYear ? s.academicYear === reportFilters.academicYear : true) && s.course === c;
+      return activeFilters.academicYear ? (f.academicYear || "").trim() === activeFilters.academicYear : true;
     });
-    var active = courseStudents.filter(function (s) {
-      return s.status === "Active";
-    }).length;
-    var avgGpa = courseStudents.length > 0 ? (courseStudents.reduce(function (sum, s) {
-      return sum + (parseFloat(s.gpa) || 0);
-    }, 0) / courseStudents.length).toFixed(2) : "-";
-    return {
-      course: c,
-      total: courseStudents.length,
-      active: active,
-      avgGpa: avgGpa
-    };
-  });
+  }, [faculty, activeFilters]);
 
-  // Faculty report details table
-  var facultyDetails = departments.map(function (d) {
-    var deptFaculty = faculty.filter(function (f) {
-      return f.department === d;
+  // Student counts by course (respect filters)
+  var studentByCourse = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return courses.map(function (c) {
+      return students.filter(function (s) {
+        return (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) && s.course === c;
+      }).length;
     });
-    var professors = deptFaculty.filter(function (f) {
-      return f.rank === "Professor";
-    }).length;
-    var associates = deptFaculty.filter(function (f) {
-      return f.rank === "Associate" || f.rank === "Associate Professor";
-    }).length;
+  }, [students, courses, activeFilters]);
+
+  // Faculty counts by department (respect academic year)
+  var facultyByDept = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return departments.map(function (d) {
+      return filteredFaculty.filter(function (f) {
+        return f.department === d;
+      }).length;
+    });
+  }, [departments, filteredFaculty]);
+
+  // Student table rows
+  var studentDetails = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return courses.map(function (c) {
+      var list = students.filter(function (s) {
+        return (activeFilters.academicYear ? (s.academicYear || "").trim() === activeFilters.academicYear : true) && s.course === c;
+      });
+      var active = list.filter(function (s) {
+        return s.status === "Active";
+      }).length;
+      var graduated = list.filter(function (s) {
+        return s.status === "Graduated";
+      }).length;
+      var avgGpa = list.length ? (list.reduce(function (sum, s) {
+        return sum + (parseFloat(s.gpa) || 0);
+      }, 0) / list.length).toFixed(2) : "-";
+      return {
+        course: c,
+        total: list.length,
+        active: active,
+        graduated: graduated,
+        avgGpa: avgGpa
+      };
+    });
+  }, [students, courses, activeFilters]);
+
+  // Faculty table rows (respect academic year)
+  var facultyDetails = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return departments.map(function (d) {
+      var list = filteredFaculty.filter(function (f) {
+        return f.department === d;
+      });
+      var professors = list.filter(function (f) {
+        return f.rank === "Professor";
+      }).length;
+      var associates = list.filter(function (f) {
+        return /Associate/i.test(f.rank);
+      }).length;
+      var assistants = list.filter(function (f) {
+        return /Assistant/i.test(f.rank);
+      }).length;
+      return {
+        dept: d,
+        total: list.length,
+        professors: professors,
+        associates: associates,
+        assistants: assistants
+      };
+    });
+  }, [departments, filteredFaculty]);
+
+  // Five-year trends (per-year faculty counts now)
+  var trendRows = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    var years = academicYears.slice(0, 5);
+    return years.map(function (yr, idx, arr) {
+      var totalStudents = students.filter(function (s) {
+        return (s.academicYear || "").trim() === yr;
+      }).length;
+      var totalFaculty = faculty.filter(function (f) {
+        return (f.academicYear || "").trim() === yr;
+      }).length;
+      var ratio = totalFaculty ? (totalStudents / totalFaculty).toFixed(2) : "—";
+      var yoy = "—";
+      if (idx > 0) {
+        var prevStudents = students.filter(function (s) {
+          return (s.academicYear || "").trim() === arr[idx - 1];
+        }).length;
+        if (prevStudents) {
+          yoy = ((totalStudents - prevStudents) / prevStudents * 100).toFixed(1) + "%";
+        }
+      }
+      return {
+        year: yr,
+        students: totalStudents,
+        faculty: totalFaculty,
+        ratio: ratio,
+        yoy: yoy
+      };
+    });
+  }, [academicYears, students, faculty]);
+
+  // Average GPA (filtered)
+  var avgGPA = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return filteredStudents.length ? (filteredStudents.reduce(function (s, r) {
+      return s + (parseFloat(r.gpa) || 0);
+    }, 0) / filteredStudents.length).toFixed(2) : "0.00";
+  }, [filteredStudents]);
+
+  // Charts (use filtered faculty/students where appropriate)
+  var barData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
     return {
-      dept: d,
-      total: deptFaculty.length,
-      professors: professors,
-      associates: associates
+      labels: courses,
+      datasets: [{
+        label: "Students",
+        data: studentByCourse,
+        backgroundColor: "#8b5cf6"
+      }]
     };
-  });
+  }, [courses, studentByCourse]);
+  var pieData = (0,react__WEBPACK_IMPORTED_MODULE_0__.useMemo)(function () {
+    return {
+      labels: departments,
+      datasets: [{
+        label: "Faculty",
+        data: facultyByDept,
+        backgroundColor: ["#a855f7", "#6366f1", "#f59e0b", "#10b981", "#ec4899", "#3b82f6", "#f87171"]
+      }]
+    };
+  }, [departments, facultyByDept]);
 
-  // Chart data
-  var barData = {
-    labels: courses,
-    datasets: [{
-      label: "Students",
-      data: studentByCourse,
-      backgroundColor: "#3b82f6"
-    }]
+  // Actions
+  var generateReport = function generateReport() {
+    var id = "RPT-".concat(new Date().getFullYear(), "-").concat(reportType === "Student Report" ? "STUDENTS" : "FACULTY", "-").concat(Math.floor(Math.random() * 900 + 100));
+    setReportId(id);
+    setGeneratedAt(new Date().toISOString());
+    // optional: persist metadata
+    localStorage.setItem("lastReportMeta", JSON.stringify({
+      id: id,
+      reportType: reportType,
+      course: course,
+      academicYear: academicYear,
+      generatedAt: new Date().toLocaleString()
+    }));
+    // scroll to report
+    setTimeout(function () {
+      var _reportRef$current;
+      return (_reportRef$current = reportRef.current) === null || _reportRef$current === void 0 ? void 0 : _reportRef$current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 50);
   };
-  var pieData = {
-    labels: departments,
-    datasets: [{
-      label: "Faculty",
-      data: facultyByDept,
-      backgroundColor: ["#fbbf24", "#22d3ee", "#f87171", "#a78bfa", "#4ade80", "#a855f7", "#f472b6"]
-    }]
-  };
+  var downloadPDF = /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var html2canvas, jsPDF, canvas, imgData, pdf, pageWidth, pageHeight, imgWidth, imgHeight, heightLeft, position, filename, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            if (!(!reportRef.current || !generatedAt)) {
+              _context.n = 1;
+              break;
+            }
+            return _context.a(2);
+          case 1:
+            setDownloading(true);
+            _context.p = 2;
+            html2canvas = window.html2canvas;
+            jsPDF = window.jspdf.jsPDF;
+            if (!(!html2canvas || !jsPDF)) {
+              _context.n = 3;
+              break;
+            }
+            throw new Error("Libraries not loaded");
+          case 3:
+            _context.n = 4;
+            return html2canvas(reportRef.current, {
+              scale: 2,
+              backgroundColor: "#0f1020"
+            });
+          case 4:
+            canvas = _context.v;
+            imgData = canvas.toDataURL("image/png");
+            pdf = new jsPDF("p", "pt", "a4");
+            pageWidth = pdf.internal.pageSize.getWidth();
+            pageHeight = pdf.internal.pageSize.getHeight();
+            imgWidth = pageWidth;
+            imgHeight = canvas.height * imgWidth / canvas.width;
+            heightLeft = imgHeight;
+            position = 0;
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            while (heightLeft > 0) {
+              position = heightLeft - imgHeight;
+              pdf.addPage();
+              pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+              heightLeft -= pageHeight;
+            }
+            filename = "".concat(reportId || "report", "_").concat(new Date().toISOString().slice(0, 10), ".pdf");
+            pdf.save(filename);
+            _context.n = 6;
+            break;
+          case 5:
+            _context.p = 5;
+            _t = _context.v;
+            console.error(_t);
+            window.print();
+          case 6:
+            _context.p = 6;
+            setDownloading(false);
+            return _context.f(6);
+          case 7:
+            return _context.a(2);
+        }
+      }, _callee, null, [[2, 5, 6, 7]]);
+    }));
+    return function downloadPDF() {
+      return _ref.apply(this, arguments);
+    };
+  }();
 
-  // GPA calculation (overall)
-  var avgGPA = filteredStudents.length > 0 ? (filteredStudents.reduce(function (sum, s) {
-    return sum + (parseFloat(s.gpa) || 0);
-  }, 0) / filteredStudents.length).toFixed(2) : "0.00";
-  var profile = (0,_MyProfile__WEBPACK_IMPORTED_MODULE_4__.getProfile)();
+  // ---------- Styles ----------
+  var pagePad = {
+    padding: "32px"
+  };
+  var panel = {
+    background: "#121225",
+    borderRadius: "14px",
+    padding: "20px",
+    color: "#fff"
+  };
+  var purpleHeader = {
+    background: "#8b5cf6",
+    color: "#fff",
+    fontWeight: 600
+  };
+  var tableBase = {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "14px",
+    background: "#181826",
+    borderRadius: "12px",
+    overflow: "hidden"
+  };
+  var thTd = {
+    padding: "10px 14px",
+    borderBottom: "1px solid #23234a",
+    textAlign: "left"
+  };
+  var statCard = {
+    background: "#181826",
+    padding: "18px 20px",
+    borderRadius: "16px",
+    flex: 1,
+    color: "#fff",
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    position: "relative",
+    minWidth: 220
+  };
+  var badge = {
+    fontSize: "11px",
+    padding: "2px 8px",
+    background: "#23234a",
+    borderRadius: "999px",
+    letterSpacing: ".5px"
+  };
+  var filterStyle = {
+    background: "#23234a",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "8px 14px",
+    fontSize: "14px",
+    minWidth: "160px"
+  };
+  var primaryBtn = {
+    background: "#8b5cf6",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 20px",
+    fontWeight: 600,
+    cursor: "pointer"
+  };
+  var ghostBtn = {
+    background: "#23234a",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 20px",
+    fontWeight: 600,
+    cursor: "pointer"
+  };
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "reports-content",
-    style: {
-      padding: "32px"
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("header", {
-    className: "top-bar",
-    style: {
-      display: "flex",
-      justifyContent: "flex-end",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_ProfileWidget__WEBPACK_IMPORTED_MODULE_3__["default"], {
-    profile: profile
-  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h2", {
-    style: {
-      color: "#a855f7"
-    }
-  }, "Reports"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", null, "Generate and analyze comprehensive reports"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "report-filters",
+    style: pagePad
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       display: "flex",
       gap: "16px",
       alignItems: "center",
-      margin: "24px 0"
+      background: "#181826",
+      padding: "16px 20px",
+      borderRadius: "14px",
+      marginBottom: "24px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("select", {
     value: reportType,
@@ -87396,110 +87956,288 @@ function Reports() {
       key: y
     }, y);
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
-    style: {
-      background: "#a855f7",
-      color: "#fff",
-      border: "none",
-      borderRadius: "8px",
-      padding: "8px 20px",
-      fontWeight: "bold",
-      marginLeft: "auto"
-    },
-    onClick: function onClick() {
-      return setReportFilters({
-        reportType: reportType,
-        course: course,
-        academicYear: academicYear
-      });
-    }
-  }, "Generate Report"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
-    style: {
-      background: "#23234a",
-      color: "#fff",
-      border: "none",
-      borderRadius: "8px",
-      padding: "8px 20px",
-      fontWeight: "bold",
-      marginLeft: "8px"
-    }
-  }, "Download")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "report-stats",
-    style: {
-      display: "flex",
-      gap: "32px",
-      margin: "32px 0"
-    }
+    onClick: generateReport,
+    style: primaryBtn
+  }, "Generate"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    onClick: downloadPDF,
+    style: _objectSpread(_objectSpread({}, ghostBtn), {}, {
+      opacity: generatedAt ? 1 : 0.6,
+      pointerEvents: generatedAt ? "auto" : "none"
+    })
+  }, downloading ? "Preparing…" : "Download")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    ref: reportRef
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "stat-card",
-    style: statCardStyle
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
-    className: "fas fa-user-graduate",
-    style: {
-      fontSize: "32px",
-      color: "#3b82f6"
-    }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      fontSize: "32px",
-      fontWeight: "bold"
-    }
-  }, filteredStudents.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, "Total Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      color: "#22c55e",
-      fontSize: "13px"
-    }
-  }, "\u2191 +12.5%")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "stat-card",
-    style: statCardStyle
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
-    className: "fas fa-user-tie",
-    style: {
-      fontSize: "32px",
-      color: "#22d3ee"
-    }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      fontSize: "32px",
-      fontWeight: "bold"
-    }
-  }, faculty.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, "Total Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      color: "#22c55e",
-      fontSize: "13px"
-    }
-  }, "\u2191 +3.1%")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "stat-card",
-    style: statCardStyle
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
-    className: "fas fa-file-alt",
-    style: {
-      fontSize: "32px",
-      color: "#a855f7"
-    }
-  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      fontSize: "32px",
-      fontWeight: "bold"
-    }
-  }, avgGPA), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, "Average GPA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      color: "#22c55e",
-      fontSize: "13px"
-    }
-  }, "\u2191 +0.05"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "charts-row",
+    style: _objectSpread(_objectSpread({}, panel), {}, {
+      padding: "28px 32px",
+      marginBottom: "28px"
+    })
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       display: "flex",
-      gap: "32px",
-      marginBottom: "32px"
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: "24px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "14px",
+      marginBottom: "10px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      flex: 1
+      width: "44px",
+      height: "44px",
+      background: "#8b5cf6",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "12px",
+      fontWeight: 700,
+      fontSize: "18px"
+    }
+  }, "EI"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "18px",
+      fontWeight: 600
+    }
+  }, "ZJ University"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "12px",
+      opacity: .7
+    }
+  }, "Student & Faculty Management System"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h3", {
+    style: {
+      margin: 0,
+      color: "#8b5cf6"
+    }
+  }, reportType === "Student Report" ? "Student Enrollment Report" : "Faculty Distribution Report")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "13px",
+      lineHeight: "1.4",
+      textAlign: "right"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("b", null, "Report ID:"), " ", reportId || "—"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("b", null, "Report Date:"), " ", new Date().toLocaleDateString()), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("b", null, "Academic Year:"), " ", academicYear || "All / Multi-Year"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("b", null, "Prepared By:"), " Office of Institutional Research")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      color: "#8b5cf6",
+      margin: "0 0 12px"
+    }
+  }, "Executive Summary"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "22px",
+      marginBottom: "34px",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: statCard
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "13px",
+      fontWeight: 600
+    }
+  }, "Total Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "32px",
+      fontWeight: 700
+    }
+  }, filteredStudents.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      color: "#22c55e",
+      fontSize: "12px"
+    }
+  }, "\u2191 Growth Trend"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+    style: badge
+  }, "STUDENTS")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: statCard
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "13px",
+      fontWeight: 600
+    }
+  }, "Total Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "32px",
+      fontWeight: 700
+    }
+  }, filteredFaculty.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      color: "#22c55e",
+      fontSize: "12px"
+    }
+  }, "\u2191 Stable Expansion"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+    style: badge
+  }, "FACULTY")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: statCard
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "13px",
+      fontWeight: 600
+    }
+  }, "Average GPA"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "32px",
+      fontWeight: 700
+    }
+  }, avgGPA), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      color: "#22c55e",
+      fontSize: "12px"
+    }
+  }, "\u2191 Slight Improvement"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+    style: badge
+  }, "ACADEMICS"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "32px",
+      marginBottom: "40px",
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: "380px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
     style: {
+      margin: "0 0 10px",
       color: "#fff"
+    }
+  }, "Student Enrollment by Course"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("table", {
+    style: tableBase
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+    style: purpleHeader
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Course Program"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Total Enrolled"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Active Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Graduated"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Average GPA"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tbody", null, studentDetails.map(function (r) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+      key: r.course
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.course), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.total), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.active), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.graduated), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.avgGpa));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+    style: {
+      background: "#23234a",
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, "TOTAL"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, studentDetails.reduce(function (s, r) {
+    return s + r.total;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, studentDetails.reduce(function (s, r) {
+    return s + r.active;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, studentDetails.reduce(function (s, r) {
+    return s + r.graduated;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, function () {
+    var g = studentDetails.filter(function (r) {
+      return r.avgGpa !== "-";
+    }).map(function (r) {
+      return parseFloat(r.avgGpa);
+    });
+    return g.length ? (g.reduce(function (s, v) {
+      return s + v;
+    }, 0) / g.length).toFixed(2) : "-";
+  }()))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: "380px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      margin: "0 0 10px",
+      color: "#fff"
+    }
+  }, "Faculty Distribution by Department"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("table", {
+    style: tableBase
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+    style: purpleHeader
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Department"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Total Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Professors"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Associate Professors"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Assistant Professors"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tbody", null, facultyDetails.map(function (r) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+      key: r.dept
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.dept), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.total), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.professors), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.associates), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.assistants));
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+    style: {
+      background: "#23234a",
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, "TOTAL"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, facultyDetails.reduce(function (s, r) {
+    return s + r.total;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, facultyDetails.reduce(function (s, r) {
+    return s + r.professors;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, facultyDetails.reduce(function (s, r) {
+    return s + r.associates;
+  }, 0)), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+    style: thTd
+  }, facultyDetails.reduce(function (s, r) {
+    return s + r.assistants;
+  }, 0))))))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "32px",
+      flexWrap: "wrap",
+      marginBottom: "48px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: _objectSpread({
+      flex: 1,
+      minWidth: "380px"
+    }, panel)
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      marginTop: 0
     }
   }, "Students by Course"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__.Bar, {
     data: barData,
@@ -87525,12 +88263,13 @@ function Reports() {
     },
     height: 220
   })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    style: {
-      flex: 1
-    }
+    style: _objectSpread({
+      flex: 1,
+      minWidth: "380px"
+    }, panel)
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
     style: {
-      color: "#fff"
+      marginTop: 0
     }
   }, "Faculty by Department"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(react_chartjs_2__WEBPACK_IMPORTED_MODULE_1__.Pie, {
     data: pieData,
@@ -87546,70 +88285,183 @@ function Reports() {
       }
     },
     height: 220
-  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
-    className: "details-row",
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      color: "#fff",
+      margin: "0 0 12px"
+    }
+  }, "Five-Year Enrollment Trends"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("table", {
+    style: _objectSpread(_objectSpread({}, tableBase), {}, {
+      marginBottom: "42px"
+    })
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+    style: purpleHeader
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Academic Year"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Total Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Total Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "Student-Faculty Ratio"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", {
+    style: thTd
+  }, "YoY Growth %"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tbody", null, trendRows.map(function (r) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
+      key: r.year
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.year), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.students), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.faculty), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: thTd
+    }, r.ratio), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", {
+      style: _objectSpread(_objectSpread({}, thTd), {}, {
+        color: r.yoy.startsWith("-") ? "#f87171" : r.yoy === "—" ? "#fff" : "#22c55e"
+      })
+    }, r.yoy));
+  }))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+    style: {
+      color: "#fff",
+      margin: "0 0 16px"
+    }
+  }, "Key Findings & Recommendations"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       display: "flex",
-      gap: "32px"
+      flexDirection: "column",
+      gap: "14px",
+      marginBottom: "54px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(FindingCard, {
+    icon: "fa-chart-line",
+    title: "Enrollment Growth",
+    color: "#8b5cf6",
+    text: "Institution shows consistent growth with positive year-over-year student enrollment, indicating strong academic appeal and retention strategy."
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(FindingCard, {
+    icon: "fa-users",
+    title: "Faculty Expansion",
+    color: "#6366f1",
+    text: "Faculty headcount maintains a healthy student-faculty ratio supporting efficient delivery and personalized academic support."
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(FindingCard, {
+    icon: "fa-graduation-cap",
+    title: "Academic Excellence",
+    color: "#10b981",
+    text: "Average GPA trends remain stable with incremental improvement\u2014suggests effective curriculum oversight and assessment integrity."
+  }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(RecommendationCard, {
+    items: ["Prioritize hiring in high-demand programs (e.g., Computer Science, Engineering).", "Continue monitoring student-faculty ratios to maintain quality standards.", "Expand support programs for courses with lower GPA averages.", "Invest in analytics for early identification of at-risk students."]
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontSize: "11px",
+      opacity: .75,
+      display: "flex",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: "12px",
+      borderTop: "1px solid #23234a",
+      paddingTop: "18px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, "\xA9 ", new Date().getFullYear(), " ZJ University. All rights reserved.", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("br", null), "Confidential report. Distribution limited to authorized personnel only."), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, "Report ID: ", reportId || "—", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("br", null), "Classification: Internal Use Only"))));
+}
+
+// ---------- Small subcomponents ----------
+function FindingCard(_ref2) {
+  var icon = _ref2.icon,
+    title = _ref2.title,
+    text = _ref2.text,
+    color = _ref2.color;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      background: "#181826",
+      padding: "16px 18px",
+      borderRadius: "12px",
+      color: "#fff",
+      display: "flex",
+      gap: "14px",
+      alignItems: "flex-start"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      flex: 1
+      width: "34px",
+      height: "34px",
+      background: color,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "10px"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
+    className: "fas ".concat(icon),
     style: {
       color: "#fff"
     }
-  }, "Student Report Details"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("table", {
-    style: tableStyle
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Course"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Total"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Avg GPA"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tbody", null, studentDetails.map(function (row) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
-      key: row.course
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.course), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.total), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.active), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.avgGpa));
-  })))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      flex: 1
+      fontWeight: 600,
+      marginBottom: "4px"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("h4", {
+  }, title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
-      color: "#fff"
+      fontSize: "13px",
+      lineHeight: "1.4",
+      opacity: .85
     }
-  }, "Faculty Report Details"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("table", {
-    style: tableStyle
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("thead", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Department"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Total"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Professors"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("th", null, "Associates"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tbody", null, facultyDetails.map(function (row) {
-    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("tr", {
-      key: row.dept
-    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.dept), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.total), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.professors), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("td", null, row.associates));
-  }))))));
+  }, text)));
 }
-var filterStyle = {
-  background: "#23234a",
-  color: "#fff",
-  border: "none",
-  borderRadius: "8px",
-  padding: "8px 16px",
-  fontSize: "15px"
-};
-var statCardStyle = {
-  background: "#181826",
-  borderRadius: "16px",
-  padding: "24px",
-  minWidth: "180px",
-  color: "#fff",
-  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  flex: 1
-};
-var tableStyle = {
-  width: "100%",
-  background: "#181826",
-  color: "#fff",
-  borderRadius: "10px",
-  borderCollapse: "collapse",
-  marginTop: "12px"
-};
+function RecommendationCard(_ref3) {
+  var items = _ref3.items;
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      background: "#181826",
+      padding: "16px 18px 18px",
+      border: "1px solid #8b5cf6",
+      borderRadius: "12px",
+      color: "#fff"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      marginBottom: "8px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      width: "34px",
+      height: "34px",
+      background: "#fbbf24",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "10px"
+    }
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("i", {
+    className: "fas fa-lightbulb",
+    style: {
+      color: "#000"
+    }
+  })), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    style: {
+      fontWeight: 600
+    }
+  }, "Recommendations")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("ul", {
+    style: {
+      margin: 0,
+      paddingLeft: "20px",
+      fontSize: "13px",
+      lineHeight: "1.5"
+    }
+  }, items.map(function (t, i) {
+    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("li", {
+      key: i
+    }, t);
+  })));
+}
 
 /***/ }),
 
@@ -87860,17 +88712,38 @@ var initialAcademicYears = [{
   start: "2022-09-01",
   end: "2023-06-30"
 }];
+
+// Seed once, then never overwrite user's data
+var SEED_FLAG = "sfms:seed:v1";
+function ensureSeeded() {
+  if (!localStorage.getItem(SEED_FLAG)) {
+    if (!localStorage.getItem("departments")) {
+      localStorage.setItem("departments", JSON.stringify(initialDepartments));
+    }
+    if (!localStorage.getItem("courses")) {
+      localStorage.setItem("courses", JSON.stringify(initialCourses));
+    }
+    if (!localStorage.getItem("academicYears")) {
+      localStorage.setItem("academicYears", JSON.stringify(initialAcademicYears));
+    }
+    localStorage.setItem(SEED_FLAG, "1");
+  }
+}
+// Run immediately so getters below always read from LS
+ensureSeeded();
+
+// Read ONLY from localStorage; no more fallbacks to samples
 function getInitialDepartments() {
   var stored = localStorage.getItem("departments");
-  return stored ? JSON.parse(stored) : initialDepartments;
+  return stored ? JSON.parse(stored) : [];
 }
 function getInitialCourses() {
   var stored = localStorage.getItem("courses");
-  return stored ? JSON.parse(stored) : initialCourses;
+  return stored ? JSON.parse(stored) : [];
 }
 function getInitialAcademicYears() {
   var stored = localStorage.getItem("academicYears");
-  return stored ? JSON.parse(stored) : initialAcademicYears;
+  return stored ? JSON.parse(stored) : [];
 }
 function Settings() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("Courses"),
@@ -87987,13 +88860,13 @@ function Settings() {
     }));
   };
 
-  // --- DELETE HANDLERS ---
+  // --- DELETE HANDLERS (hard delete is permanent) ---
   var handleDeleteDepartment = function handleDeleteDepartment(name) {
     if (window.confirm("Delete department \"".concat(name, "\" permanently? This cannot be undone."))) {
       var updated = departments.filter(function (d) {
         return d.name !== name;
       });
-      setDepartments(updated);
+      setDepartments(updated); // persisted by useEffect
     }
   };
   var handleDeleteCourse = function handleDeleteCourse(code) {
@@ -88001,7 +88874,7 @@ function Settings() {
       var updated = courses.filter(function (c) {
         return c.code !== code;
       });
-      setCourses(updated);
+      setCourses(updated); // persisted by useEffect
     }
   };
   var handleDeleteYear = function handleDeleteYear(name) {
@@ -88009,12 +88882,18 @@ function Settings() {
       var updated = academicYears.filter(function (y) {
         return y.name !== name;
       });
-      setAcademicYears(updated);
+      setAcademicYears(updated); // persisted by useEffect
     }
   };
 
-  // Add/Edit handlers
+  // Add/Edit handlers (prevent duplicate course code)
   var handleAddCourse = function handleAddCourse(course) {
+    if (courses.some(function (c) {
+      return c.code === course.code;
+    })) {
+      alert("Course code \"".concat(course.code, "\" already exists."));
+      return;
+    }
     setCourses([].concat(_toConsumableArray(courses), [course]));
     setShowAddCourseModal(false);
   };
@@ -89208,11 +90087,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ProfileWidget__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ProfileWidget */ "./resources/js/components/ProfileWidget.js");
 /* harmony import */ var _MyProfile__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./MyProfile */ "./resources/js/components/MyProfile.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
-function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
-function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
-function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
-function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -89221,6 +90095,11 @@ function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Sym
 function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -89244,6 +90123,15 @@ function logActivity(type, desc) {
 }
 
 // Utility functions
+function normalizeStatus(s) {
+  if (!s) return s;
+  var map = {
+    ACTIVE: "Active",
+    OFFLINE: "Offline",
+    GRADUATED: "Graduated"
+  };
+  return map[s] || s;
+}
 function getDepartments() {
   var stored = localStorage.getItem("departments");
   if (stored) {
@@ -89342,9 +90230,13 @@ function StudentManagement() {
   // Fetch students from API
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/students").then(function (res) {
-      var data = Array.isArray(res.data) ? res.data : [];
+      var data = Array.isArray(res.data) ? res.data.map(function (stu) {
+        return _objectSpread(_objectSpread({}, stu), {}, {
+          status: normalizeStatus(stu.status)
+        });
+      }) : [];
       setStudents(data);
-      localStorage.setItem("students", JSON.stringify(data)); // Sync to localStorage
+      localStorage.setItem("students", JSON.stringify(data));
     });
   }, []);
 
@@ -89603,10 +90495,12 @@ function StudentManagement() {
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
     value: "ALL"
   }, "All Status"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "ACTIVE"
+    value: "Active"
   }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "OFFLINE"
-  }, "Offline")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+    value: "Offline"
+  }, "Offline"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Graduated"
+  }, "Graduated")))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "students-grid"
   }, filteredStudents.map(function (student) {
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
@@ -89629,7 +90523,8 @@ function StudentManagement() {
     }).join('') : ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
       className: "status",
       style: {
-        background: student.status === "ACTIVE" ? "#a855f7" : "#6366f1",
+        background: student.status === "Active" ? "#a855f7" : student.status === "Offline" ? "#6366f1" : "#10b981",
+        // Graduated
         color: "#fff",
         borderRadius: "12px",
         padding: "2px 18px",
@@ -89941,10 +90836,12 @@ function StudentManagement() {
       }));
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "ACTIVE"
+    value: "Active"
   }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "OFFLINE"
-  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    value: "Offline"
+  }, "Offline"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Graduated"
+  }, "Graduated")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",
@@ -90009,7 +90906,7 @@ function StudentManagement() {
         age: form.age.value,
         gpa: form.gpa.value,
         department: form.department.value,
-        status: form.status.value
+        status: form.status.value // Title Case
       };
       handleAddStudent(newStudent);
     }
@@ -90117,10 +91014,12 @@ function StudentManagement() {
       marginBottom: "8px"
     }
   }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "ACTIVE"
+    value: "Active"
   }, "Active"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
-    value: "OFFLINE"
-  }, "Offline")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
+    value: "Offline"
+  }, "Offline"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("option", {
+    value: "Graduated"
+  }, "Graduated")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("button", {
     type: "submit",
     style: {
       background: "#a855f7",

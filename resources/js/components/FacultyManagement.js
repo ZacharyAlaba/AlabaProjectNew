@@ -24,18 +24,47 @@ function getDepartments() {
     return [];
 }
 
+// NEW: academic years loader (exclude Archived)
+function getAcademicYears() {
+    const stored = localStorage.getItem("academicYears");
+    if (!stored) return [];
+    try {
+        return JSON.parse(stored).filter(y => y.status !== "Archived");
+    } catch {
+        return [];
+    }
+}
+
+// Helper to map joined date to academic year (optional)
+function inferAcademicYear(joinedDate, years) {
+    if (!joinedDate) return "";
+    const ts = Date.parse(joinedDate);
+    if (isNaN(ts)) return "";
+    for (const y of years) {
+        if (y.start && y.end) {
+            const s = Date.parse(y.start);
+            const e = Date.parse(y.end);
+            if (!isNaN(s) && !isNaN(e) && ts >= s && ts <= e) {
+                return y.name;
+            }
+        }
+    }
+    return "";
+}
+
 export default function FacultyManagement() {
     const [faculty, setFaculty] = useState([]);
     const [menuOpenId, setMenuOpenId] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [departments, setDepartments] = useState(getDepartments());
+    const [academicYears, setAcademicYears] = useState(getAcademicYears()); // NEW
     const [formData, setFormData] = useState({
         name: "",
         position: "",
         department: "",
         email: "",
         phone: "",
-        joined: "",
+        academicYear: "",        // NEW replaces joined
         specialization: "",
         status: "ACTIVE"
     });
@@ -52,13 +81,20 @@ export default function FacultyManagement() {
     useEffect(() => {
         axios.get("/api/faculty").then(res => {
             const data = Array.isArray(res.data) ? res.data : [];
-            setFaculty(data);
-            localStorage.setItem("faculty", JSON.stringify(data)); // Sync to localStorage
+            // Map joined -> academicYear if missing
+            const mapped = data.map(f => ({
+                ...f,
+                academicYear: f.academicYear || inferAcademicYear(f.joined, academicYears),
+                rank: f.rank || f.position
+            }));
+            setFaculty(mapped);
+            localStorage.setItem("faculty", JSON.stringify(mapped));
         });
-    }, []);
+    }, [academicYears]); // re-run if academic years load later
 
     useEffect(() => {
         setDepartments(getDepartments());
+        setAcademicYears(getAcademicYears()); // keep in sync
     }, []);
 
     const handleChange = (e) => {
@@ -67,11 +103,15 @@ export default function FacultyManagement() {
 
     // Add faculty handler (API)
     const handleAddFaculty = async (newFaculty) => {
+        newFaculty.rank = newFaculty.position;
+        // Keep a joined placeholder (first day of academic year) for backend compatibility
+        const selYear = academicYears.find(y => y.name === newFaculty.academicYear);
+        newFaculty.joined = selYear?.start || ""; // backend may expect joined
         const res = await axios.post("/api/faculty", newFaculty);
-        const updated = [...faculty, res.data];
+        const data = { ...res.data, rank: newFaculty.rank, academicYear: newFaculty.academicYear };
+        const updated = [...faculty, data];
         setFaculty(updated);
-        localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
-        // --- LOG ACTIVITY ---
+        localStorage.setItem("faculty", JSON.stringify(updated));
         logActivity("faculty", `New faculty added: ${newFaculty.name} (${newFaculty.department})`);
         setShowAddModal(false);
     };
@@ -96,13 +136,23 @@ export default function FacultyManagement() {
         setMenuOpenId(null);
     };
 
+    // Edit submit
     const handleEditSubmit = async (e) => {
         e.preventDefault();
-        const res = await axios.put(`/api/faculty/${editFaculty.id}`, editFaculty);
-        const updated = faculty.map(f => f.id === editFaculty.id ? res.data : f);
+        const selYear = academicYears.find(y => y.name === editFaculty.academicYear);
+        const payload = {
+            ...editFaculty,
+            rank: editFaculty.position,
+            joined: selYear?.start || editFaculty.joined || ""
+        };
+        const res = await axios.put(`/api/faculty/${editFaculty.id}`, payload);
+        const updated = faculty.map(f =>
+            f.id === editFaculty.id
+                ? { ...res.data, rank: payload.rank, academicYear: editFaculty.academicYear }
+                : f
+        );
         setFaculty(updated);
-        localStorage.setItem("faculty", JSON.stringify(updated)); // Sync to localStorage
-        // --- LOG ACTIVITY ---
+        localStorage.setItem("faculty", JSON.stringify(updated));
         logActivity("faculty", `Faculty updated: ${editFaculty.name} (${editFaculty.department})`);
         setShowEditModal(false);
         setEditFaculty(null);
@@ -302,7 +352,7 @@ export default function FacultyManagement() {
                         }}>{fac.department}</span>
                         <p><i className="fas fa-envelope"></i> {fac.email}</p>
                         <p><i className="fas fa-phone"></i> {fac.phone}</p>
-                        <p><i className="fas fa-calendar"></i> Joined {fac.joined}</p>
+                        <p>Academic Year: {fac.academicYear || "-"}</p>
                         <p>ID: {fac.faculty_id}</p>
                         <div style={{ borderTop: "1px solid #333", margin: "10px 0" }}></div>
                         <div>
@@ -351,7 +401,7 @@ export default function FacultyManagement() {
                         <p>Department: {selectedFaculty.department}</p>
                         <p>Email: {selectedFaculty.email}</p>
                         <p>Phone: {selectedFaculty.phone}</p>
-                        <p>Joined: {selectedFaculty.joined}</p>
+                        <p>Academic Year: {selectedFaculty.academicYear || "-"}</p>
                         <p>ID: {selectedFaculty.faculty_id}</p>
                         <p>Specialization: {selectedFaculty.specialization}</p>
                         <p>Status: {selectedFaculty.status}</p>
@@ -396,9 +446,15 @@ export default function FacultyManagement() {
                             <input name="name" placeholder="Full Name" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.name}
                                 onChange={e => setEditFaculty({ ...editFaculty, name: e.target.value })} />
-                            <input name="position" placeholder="Position" required style={{ width: "100%", marginBottom: "8px" }}
+                            {/* Position select (rank) */}
+                            <select name="position" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.position}
-                                onChange={e => setEditFaculty({ ...editFaculty, position: e.target.value })} />
+                                onChange={e => setEditFaculty({ ...editFaculty, position: e.target.value })}>
+                                <option value="">Select Rank</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Assistant Professor">Assistant Professor</option>
+                            </select>
                             <select name="department" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.department}
                                 onChange={e => setEditFaculty({ ...editFaculty, department: e.target.value })}>
@@ -413,9 +469,15 @@ export default function FacultyManagement() {
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.phone}
                                 onChange={e => setEditFaculty({ ...editFaculty, phone: e.target.value })} />
-                            <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }}
-                                value={editFaculty.joined}
-                                onChange={e => setEditFaculty({ ...editFaculty, joined: e.target.value })} />
+                            {/* Academic Year select */}
+                            <select name="academicYear" required style={{ width:"100%", marginBottom:"8px" }}
+                                value={editFaculty.academicYear || ""}
+                                onChange={e => setEditFaculty({ ...editFaculty, academicYear: e.target.value })}>
+                                <option value="">Select Academic Year</option>
+                                {academicYears.map(y => (
+                                    <option key={y.name} value={y.name}>{y.name}</option>
+                                ))}
+                            </select>
                             <input name="id" placeholder="Faculty ID" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editFaculty.faculty_id}
                                 onChange={e => setEditFaculty({ ...editFaculty, faculty_id: e.target.value })} />
@@ -486,14 +548,20 @@ export default function FacultyManagement() {
                                 department: form.department.value,
                                 email: form.email.value,
                                 phone: form.phone.value,
-                                joined: form.joined.value,
+                                academicYear: form.academicYear.value, // NEW
                                 specialization: form.specialization.value,
-                                status: form.status.value // <-- status from dropdown
+                                status: form.status.value
                             };
                             handleAddFaculty(newFaculty);
                         }}>
                             <input name="name" placeholder="Full Name" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="position" placeholder="Position" required style={{ width: "100%", marginBottom: "8px" }} />
+                            {/* Position select (rank) */}
+                            <select name="position" required style={{ width: "100%", marginBottom: "8px" }}>
+                                <option value="">Select Position</option>
+                                <option value="Professor">Professor</option>
+                                <option value="Associate Professor">Associate Professor</option>
+                                <option value="Assistant Professor">Assistant Professor</option>
+                            </select>
                             <select name="department" required style={{ width: "100%", marginBottom: "8px" }}>
                                 <option value="">Select Department</option>
                                 {departments.map(dep => (
@@ -502,7 +570,13 @@ export default function FacultyManagement() {
                             </select>
                             <input name="email" placeholder="Email" required style={{ width: "100%", marginBottom: "8px" }} />
                             <input name="phone" placeholder="Phone" required style={{ width: "100%", marginBottom: "8px" }} />
-                            <input name="joined" placeholder="Joined (YYYY-MM-DD)" required style={{ width: "100%", marginBottom: "8px" }} />
+                            {/* Academic Year select */}
+                            <select name="academicYear" required style={{ width:"100%", marginBottom:"8px" }}>
+                                <option value="">Select Academic Joined Year</option>
+                                {academicYears.map(y => (
+                                    <option key={y.name} value={y.name}>{y.name}</option>
+                                ))}
+                            </select>
                             <input name="specialization" placeholder="Specialization" required style={{ width: "100%", marginBottom: "8px" }} />
                             {/* Status Dropdown */}
                             <select name="status" required style={{ width: "100%", marginBottom: "8px" }}>

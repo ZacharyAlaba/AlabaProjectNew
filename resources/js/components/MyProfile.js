@@ -21,6 +21,21 @@ const initialProfile = {
     profileImage: null // <-- add this
 };
 
+// Defaults and helpers to share credentials with Login.js
+const DEFAULT_EMAIL = "zachary.alaba@urios.edu.ph";
+const DEFAULT_PASSWORD = "Janacute123";
+
+function getAuth() {
+    const email = localStorage.getItem("authEmail") || DEFAULT_EMAIL;
+    const password = localStorage.getItem("authPassword") || DEFAULT_PASSWORD;
+    return { email, password };
+}
+
+function setAuth({ email, password }) {
+    if (email) localStorage.setItem("authEmail", email);
+    if (password) localStorage.setItem("authPassword", password);
+}
+
 export function getProfile() {
     const stored = localStorage.getItem("profile");
     return stored ? JSON.parse(stored) : initialProfile;
@@ -32,32 +47,115 @@ export default function MyProfile() {
     const [form, setForm] = useState(profile);
     const fileInputRef = useRef(null);
 
+    // State for Change Password UI
+    const [pwdForm, setPwdForm] = useState({
+        email: getAuth().email,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [pwdError, setPwdError] = useState("");
+    const [pwdSuccess, setPwdSuccess] = useState("");
+
     useEffect(() => {
         localStorage.setItem("profile", JSON.stringify(profile));
     }, [profile]);
 
     const handleEdit = () => {
         setForm(profile);
+        // initialize change-password fields from stored auth
+        const { email } = getAuth();
+        setPwdForm({
+            email,
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: ""
+        });
+        setPwdError("");
+        setPwdSuccess("");
         setEditing(true);
     };
 
     const handleCancel = () => {
         setEditing(false);
+        // reset password form
+        const { email } = getAuth();
+        setPwdForm({
+            email,
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: ""
+        });
+        setPwdError("");
+        setPwdSuccess("");
     };
 
     const handleSave = () => {
-        // Remove any previous employeeId from tags and add the new one (only once)
+        // 1) validate/apply login credential changes
+        const { email: storedEmail, password: storedPwd } = getAuth();
+        const wantPwdChange =
+            pwdForm.currentPassword || pwdForm.newPassword || pwdForm.confirmPassword;
+
+        const nextEmail = (pwdForm.email && pwdForm.email.trim())
+            ? pwdForm.email.trim()
+            : storedEmail;
+
+        if (wantPwdChange) {
+            if (pwdForm.currentPassword !== storedPwd) {
+                setPwdError("Current password is incorrect.");
+                return; // keep editing so user can fix
+            }
+            if (!pwdForm.newPassword || pwdForm.newPassword.length < 6) {
+                setPwdError("New password must be at least 6 characters.");
+                return;
+            }
+            if (pwdForm.newPassword !== pwdForm.confirmPassword) {
+                setPwdError("New passwords do not match.");
+                return;
+            }
+            setAuth({ email: nextEmail, password: pwdForm.newPassword });
+        } else {
+            // email-only change
+            if (nextEmail !== storedEmail) {
+                setAuth({ email: nextEmail });
+            }
+        }
+
+        setPwdError("");
+        setPwdSuccess("Credentials updated.");
+
+        // 2) save profile (sync profile.email to login email)
         const filteredTags = form.tags.filter(
             tag => tag !== profile.employeeId && tag !== form.employeeId
         );
-        // Find any tag that looks like an employee ID (starts with ADM- or ALABA- etc)
         const tagsWithoutEmpId = filteredTags.filter(
             tag => !/^([A-Z]+-)?\d{4}-\d{3,}$/.test(tag)
         );
         const updatedTags = [...tagsWithoutEmpId, form.employeeId];
-        setProfile({ ...form, tags: updatedTags });
+
+        setProfile({ ...form, email: nextEmail, tags: updatedTags });
         setEditing(false);
+
+        // clear password fields after save
+        setPwdForm({
+            email: nextEmail,
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: ""
+        });
     };
+
+    const inputStyle = {
+        width: "100%",
+        marginBottom: "8px",
+        padding: "8px",
+        borderRadius: "8px",
+        border: "none",
+        background: "#23234a",
+        color: "#fff",
+        fontSize: "15px"
+    };
+    const disabledInputStyle = { ...inputStyle, opacity: 0.6, cursor: "not-allowed" };
 
     // Image upload handler
     const handleImageClick = () => {
@@ -77,16 +175,8 @@ export default function MyProfile() {
         }
     };
 
-    const inputStyle = {
-        width: "100%",
-        marginBottom: "8px",
-        padding: "8px",
-        borderRadius: "8px",
-        border: "none",
-        background: "#23234a",
-        color: "#fff",
-        fontSize: "15px"
-    };
+    // Change Password: handled by handleEdit/handleSave; no extra handlers needed.
+    // Removed resetPwdForm, saveNewPassword, and the duplicate "const inputStyle = { ... }" here.
 
     return (
         <div style={{ padding: "32px" }}>
@@ -388,43 +478,98 @@ export default function MyProfile() {
                     ) : profile.bio}</div>
                 </div>
             </div>
-            <div style={{
-                background: "#181826",
-                borderRadius: "16px",
-                padding: "24px",
-                color: "#fff",
-                minWidth: "320px",
-                maxWidth: "600px"
-            }}>
-                <h4 style={{ color: "#ef4444" }}>
-                    <i className="fas fa-phone"></i> Emergency Contact
-                </h4>
-                <div style={infoRow}><b>Emergency Contact Name:</b> {editing ? (
+            {/* Emergency Contact (left) + Inline Password Form (right) */}
+            <div style={{ display: "flex", alignItems: "stretch", gap: "16px", marginBottom: "32px" }}>
+                {/* Left: Emergency Contact card */}
+                <div style={{
+                    background: "#181826",
+                    borderRadius: "16px",
+                    padding: "24px",
+                    color: "#fff",
+                    minWidth: "320px",
+                    maxWidth: "600px",
+                    flexShrink: 0
+                }}>
+                    <h4 style={{ color: "#ef4444", margin: 0 }}>
+                        <i className="fas fa-phone"></i> Emergency Contact
+                    </h4>
+                    <div style={infoRow}><b>Emergency Contact Name:</b> {editing ? (
+                        <input
+                            style={inputStyle}
+                            value={form.emergencyContact.name}
+                            onChange={e => setForm({
+                                ...form,
+                                emergencyContact: {
+                                    ...form.emergencyContact,
+                                    name: e.target.value
+                                }
+                            })}
+                        />
+                    ) : profile.emergencyContact.name}</div>
+                    <div style={infoRow}><b>Emergency Phone:</b> {editing ? (
+                        <input
+                            style={inputStyle}
+                            value={form.emergencyContact.phone}
+                            onChange={e => setForm({
+                                ...form,
+                                emergencyContact: {
+                                    ...form.emergencyContact,
+                                    phone: e.target.value
+                                }
+                            })}
+                        />
+                    ) : profile.emergencyContact.phone}</div>
+                </div>
+
+                {/* Right: Inline Change Password form */}
+                <div style={{
+                    flex: 1,
+                    background: "#181826",
+                    borderRadius: "16px",
+                    padding: "24px",
+                    color: "#fff",
+                    minWidth: "340px"
+                }}>
+                    <h4 style={{ color: "#a855f7", marginTop: 0, marginBottom: "12px" }}>
+                        <i className="fas fa-lock"></i> Update Login Credentials
+                    </h4>
+                    <label style={{ fontSize: "13px" }}>Login Email (username)</label>
                     <input
-                        style={inputStyle}
-                        value={form.emergencyContact.name}
-                        onChange={e => setForm({
-                            ...form,
-                            emergencyContact: {
-                                ...form.emergencyContact,
-                                name: e.target.value
-                            }
-                        })}
+                        style={editing ? inputStyle : disabledInputStyle}
+                        type="email"
+                        value={pwdForm.email}
+                        onChange={e => setPwdForm({ ...pwdForm, email: e.target.value })}
+                        disabled={!editing}
                     />
-                ) : profile.emergencyContact.name}</div>
-                <div style={infoRow}><b>Emergency Phone:</b> {editing ? (
+                    <label style={{ fontSize: "13px" }}>Current Password</label>
                     <input
-                        style={inputStyle}
-                        value={form.emergencyContact.phone}
-                        onChange={e => setForm({
-                            ...form,
-                            emergencyContact: {
-                                ...form.emergencyContact,
-                                phone: e.target.value
-                            }
-                        })}
+                        style={editing ? inputStyle : disabledInputStyle}
+                        type="password"
+                        value={pwdForm.currentPassword}
+                        onChange={e => setPwdForm({ ...pwdForm, currentPassword: e.target.value })}
+                        disabled={!editing}
                     />
-                ) : profile.emergencyContact.phone}</div>
+                    <label style={{ fontSize: "13px" }}>New Password</label>
+                    <input
+                        style={editing ? inputStyle : disabledInputStyle}
+                        type="password"
+                        value={pwdForm.newPassword}
+                        onChange={e => setPwdForm({ ...pwdForm, newPassword: e.target.value })}
+                        disabled={!editing}
+                    />
+                    <label style={{ fontSize: "13px" }}>Confirm New Password</label>
+                    <input
+                        style={editing ? inputStyle : disabledInputStyle}
+                        type="password"
+                        value={pwdForm.confirmPassword}
+                        onChange={e => setPwdForm({ ...pwdForm, confirmPassword: e.target.value })}
+                        disabled={!editing}
+                    />
+                    {pwdError && <div style={{ color: "#f87171", marginTop: "4px" }}>{pwdError}</div>}
+                    {pwdSuccess && editing === false && (
+                        <div style={{ color: "#34d399", marginTop: "4px" }}>{pwdSuccess}</div>
+                    )}
+                </div>
             </div>
             {!editing && (
                 <button style={{

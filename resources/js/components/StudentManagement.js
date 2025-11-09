@@ -15,6 +15,11 @@ function logActivity(type, desc) {
 }
 
 // Utility functions
+function normalizeStatus(s) {
+    if (!s) return s;
+    const map = { ACTIVE: "Active", OFFLINE: "Offline", GRADUATED: "Graduated" };
+    return map[s] || s;
+}
 function getDepartments() {
     const stored = localStorage.getItem("departments");
     if (stored) {
@@ -76,9 +81,11 @@ export default function StudentManagement() {
     // Fetch students from API
     useEffect(() => {
         axios.get("/api/students").then(res => {
-            const data = Array.isArray(res.data) ? res.data : [];
+            const data = Array.isArray(res.data)
+                ? res.data.map(stu => ({ ...stu, status: normalizeStatus(stu.status) }))
+                : [];
             setStudents(data);
-            localStorage.setItem("students", JSON.stringify(data)); // Sync to localStorage
+            localStorage.setItem("students", JSON.stringify(data));
         });
     }, []);
 
@@ -272,8 +279,9 @@ export default function StudentManagement() {
                         }}
                     >
                         <option value="ALL">All Status</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="OFFLINE">Offline</option>
+                        <option value="Active">Active</option>
+                        <option value="Offline">Offline</option>
+                        <option value="Graduated">Graduated</option>
                     </select>
                 </div>
             </section>
@@ -288,7 +296,12 @@ export default function StudentManagement() {
                             <span
                                 className="status"
                                 style={{
-                                    background: student.status === "ACTIVE" ? "#a855f7" : "#6366f1",
+                                    background:
+                                        student.status === "Active"
+                                            ? "#a855f7"
+                                            : student.status === "Offline"
+                                                ? "#6366f1"
+                                                : "#10b981", // Graduated
                                     color: "#fff",
                                     borderRadius: "12px",
                                     padding: "2px 18px",
@@ -495,8 +508,9 @@ export default function StudentManagement() {
                             <select name="status" required style={{ width: "100%", marginBottom: "8px" }}
                                 value={editStudent.status}
                                 onChange={e => setEditStudent({ ...editStudent, status: e.target.value })}>
-                                <option value="ACTIVE">Active</option>
-                                <option value="OFFLINE">Offline</option>
+                                <option value="Active">Active</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Graduated">Graduated</option>
                             </select>
                             <button type="submit" style={{
                                 background: "#a855f7",
@@ -560,7 +574,7 @@ export default function StudentManagement() {
                                 age: form.age.value,
                                 gpa: form.gpa.value,
                                 department: form.department.value,
-                                status: form.status.value
+                                status: form.status.value // Title Case
                             };
                             handleAddStudent(newStudent);
                         }}>
@@ -594,8 +608,9 @@ export default function StudentManagement() {
                                 ))}
                             </select>
                             <select name="status" required style={{ width: "100%", marginBottom: "8px" }}>
-                                <option value="ACTIVE">Active</option>
-                                <option value="OFFLINE">Offline</option>
+                                <option value="Active">Active</option>
+                                <option value="Offline">Offline</option>
+                                <option value="Graduated">Graduated</option>
                             </select>
                             <button type="submit" style={{
                                 background: "#a855f7",

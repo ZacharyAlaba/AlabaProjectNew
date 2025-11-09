@@ -31,17 +31,37 @@ const initialAcademicYears = [
     { name: "2022-2023", status: "Completed", start: "2022-09-01", end: "2023-06-30" }
 ];
 
+// Seed once, then never overwrite user's data
+const SEED_FLAG = "sfms:seed:v1";
+function ensureSeeded() {
+    if (!localStorage.getItem(SEED_FLAG)) {
+        if (!localStorage.getItem("departments")) {
+            localStorage.setItem("departments", JSON.stringify(initialDepartments));
+        }
+        if (!localStorage.getItem("courses")) {
+            localStorage.setItem("courses", JSON.stringify(initialCourses));
+        }
+        if (!localStorage.getItem("academicYears")) {
+            localStorage.setItem("academicYears", JSON.stringify(initialAcademicYears));
+        }
+        localStorage.setItem(SEED_FLAG, "1");
+    }
+}
+// Run immediately so getters below always read from LS
+ensureSeeded();
+
+// Read ONLY from localStorage; no more fallbacks to samples
 function getInitialDepartments() {
     const stored = localStorage.getItem("departments");
-    return stored ? JSON.parse(stored) : initialDepartments;
+    return stored ? JSON.parse(stored) : [];
 }
 function getInitialCourses() {
     const stored = localStorage.getItem("courses");
-    return stored ? JSON.parse(stored) : initialCourses;
+    return stored ? JSON.parse(stored) : [];
 }
 function getInitialAcademicYears() {
     const stored = localStorage.getItem("academicYears");
-    return stored ? JSON.parse(stored) : initialAcademicYears;
+    return stored ? JSON.parse(stored) : [];
 }
 
 export default function Settings() {
@@ -96,28 +116,32 @@ export default function Settings() {
         setAcademicYears(academicYears.map(y => y.name === name ? { ...y, status: "Planned" } : y));
     };
 
-    // --- DELETE HANDLERS ---
+    // --- DELETE HANDLERS (hard delete is permanent) ---
     const handleDeleteDepartment = (name) => {
         if (window.confirm(`Delete department "${name}" permanently? This cannot be undone.`)) {
             const updated = departments.filter(d => d.name !== name);
-            setDepartments(updated);
+            setDepartments(updated); // persisted by useEffect
         }
     };
     const handleDeleteCourse = (code) => {
         if (window.confirm(`Delete course "${code}" permanently? This cannot be undone.`)) {
             const updated = courses.filter(c => c.code !== code);
-            setCourses(updated);
+            setCourses(updated); // persisted by useEffect
         }
     };
     const handleDeleteYear = (name) => {
         if (window.confirm(`Delete academic year "${name}" permanently? This cannot be undone.`)) {
             const updated = academicYears.filter(y => y.name !== name);
-            setAcademicYears(updated);
+            setAcademicYears(updated); // persisted by useEffect
         }
     };
 
-    // Add/Edit handlers
+    // Add/Edit handlers (prevent duplicate course code)
     const handleAddCourse = (course) => {
+        if (courses.some(c => c.code === course.code)) {
+            alert(`Course code "${course.code}" already exists.`);
+            return;
+        }
         setCourses([...courses, course]);
         setShowAddCourseModal(false);
     };

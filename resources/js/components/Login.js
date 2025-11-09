@@ -1,6 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Add defaults + a helper to read/write credentials
+const DEFAULT_EMAIL = "zachary.alaba@urios.edu.ph";
+const DEFAULT_PASSWORD = "Janacute123";
+
+function getAuth() {
+    let email = localStorage.getItem("authEmail");
+    let password = localStorage.getItem("authPassword");
+    if (!email) {
+        email = DEFAULT_EMAIL;
+        localStorage.setItem("authEmail", email);
+    }
+    if (!password) {
+        password = DEFAULT_PASSWORD;
+        localStorage.setItem("authPassword", password);
+    }
+    return { email, password };
+}
+
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -11,10 +29,9 @@ export default function Login() {
         e.preventDefault();
         setError(null);
 
-        if (
-            email === "zachary.alaba@urios.edu.ph" &&
-            password === "Janacute123"
-        ) {
+        const { email: storedEmail, password: storedPassword } = getAuth();
+
+        if (email === storedEmail && password === storedPassword) {
             navigate("/admin");
         } else {
             setError("Invalid credentials");
