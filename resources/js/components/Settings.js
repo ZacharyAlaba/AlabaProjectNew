@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProfileWidget from "./ProfileWidget";
 import { getProfile } from "./MyProfile";
 
@@ -17,18 +17,19 @@ const initialDepartments = [
 
 // Example initial courses (link to departments above)
 const initialCourses = [
-    { name: "BS Computer Science", code: "BSCS", department: "Computer Studies", credits: 120, duration: 4, status: "Active" },
-    { name: "BS Accountancy", code: "BSA", department: "Accountancy", credits: 120, duration: 4, status: "Active" },
-    { name: "BS Nursing", code: "BSN", department: "Nursing", credits: 120, duration: 4, status: "Active" },
-    { name: "BS Business Administration", code: "BSBA", department: "Business Administration", credits: 120, duration: 4, status: "Active" },
-    { name: "BS Tourism Management", code: "BSTM", department: "Tourism and Hospitality Management", credits: 120, duration: 4, status: "Active" }
+    { name: "BSIT", code: "INFORMATION TECHNOLOGY", department: "Computer Studies", credits: 120, duration: 4, status: "Active" },
+    { name: "BSA", code: "ACCOUNTANT", department: "Accountancy", credits: 120, duration: 4, status: "Active" },
+    { name: "BSN", code: "NURSE", department: "Nursing", credits: 120, duration: 4, status: "Active" },
+    { name: "BSBA", code: "BUSINESS", department: "Business Administration", credits: 120, duration: 4, status: "Active" },
+    { name: "BSTM", code: "TYMES", department: "Tourism and Hospitality Management", credits: 120, duration: 4, status: "Active" }
 ];
 
 const initialAcademicYears = [
     { name: "2024-2025", status: "Current", start: "2024-09-01", end: "2025-06-30" },
     { name: "2025-2026", status: "Planned", start: "2025-09-01", end: "2026-06-30" },
     { name: "2023-2024", status: "Completed", start: "2023-09-01", end: "2024-06-30" },
-    { name: "2022-2023", status: "Completed", start: "2022-09-01", end: "2023-06-30" }
+    { name: "2022-2023", status: "Completed", start: "2022-09-01", end: "2023-06-30" },
+    { name: "2021-2022", status: "Completed", start: "2021-09-01", end: "2022-06-30" },
 ];
 
 // Seed once, then never overwrite user's data
@@ -64,6 +65,31 @@ function getInitialAcademicYears() {
     return stored ? JSON.parse(stored) : [];
 }
 
+// Map helpers (API -> UI shape)
+const mapDepartmentsAPI = (arr=[]) => arr.map(x => ({
+  id: x.id, name: x.name,
+  established: x.established ?? "",
+  head: x.head ?? "",
+  faculty: x.faculty_count ?? 0,
+  students: x.student_count ?? 0,
+  status: x.status || "Active"
+}));
+
+const mapCoursesAPI = (arr=[]) => arr.map(x => ({
+  id: x.id, name: x.name, code: x.code,
+  department: x.department?.name || x.department || "", // string only
+  credits: x.credits ?? 0,
+  duration: x.duration ?? 4,
+  status: x.status || "Active"
+}));
+
+const mapYearsAPI = (arr=[]) => arr.map(x => ({
+  id: x.id, name: x.name,
+  status: x.status || "Planned",
+  start: x.start || "",
+  end: x.end || ""
+}));
+
 export default function Settings() {
     const [tab, setTab] = useState("Courses");
     const [departments, setDepartments] = useState(getInitialDepartments());
@@ -95,6 +121,23 @@ export default function Settings() {
     React.useEffect(() => {
         localStorage.setItem("academicYears", JSON.stringify(academicYears));
     }, [academicYears]);
+
+    // Fetch from API on mount
+    useEffect(() => {
+      (async () => {
+        try {
+          const [dRes, cRes, yRes] = await Promise.all([
+            fetch('/api/departments'),
+            fetch('/api/courses'),
+            fetch('/api/academic-years')
+          ]);
+          const [d, c, y] = await Promise.all([dRes.json(), cRes.json(), yRes.json()]);
+          setDepartments(mapDepartmentsAPI(d));
+          setCourses(mapCoursesAPI(c));
+          setAcademicYears(mapYearsAPI(y));
+        } catch (e) { console.error(e); }
+      })();
+    }, []);
 
     // Archive/Activate handlers
     const handleArchiveCourse = (code) => {
@@ -294,7 +337,7 @@ export default function Settings() {
                                         </div>
                                     )}
                                 </div>
-                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {course.department}</div>
+                                <div style={{ fontSize: "14px", marginBottom: "4px" }}>Department: {typeof course.department === "string" ? course.department : (course.department?.name || "")}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Credits: {course.credits}</div>
                                 <div style={{ fontSize: "14px", marginBottom: "4px" }}>Duration: {course.duration} years</div>
                             </div>

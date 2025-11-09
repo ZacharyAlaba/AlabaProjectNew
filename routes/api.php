@@ -3,6 +3,9 @@
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\AcademicYearController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +27,30 @@ Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
 
 Route::apiResource('students', StudentController::class);
 Route::apiResource('faculty', FacultyController::class);
+
+// Departments
+Route::get('departments', [DepartmentController::class,'index']);
+Route::post('departments', [DepartmentController::class,'store']);
+Route::put('departments/{department}', [DepartmentController::class,'update']);
+Route::post('departments/{department}/archive', [DepartmentController::class,'archive']);
+Route::post('departments/{department}/activate', [DepartmentController::class,'activate']);
+Route::delete('departments/{department}', [DepartmentController::class,'destroy']);
+
+// Courses
+Route::get('courses', [CourseController::class,'index']);
+Route::post('courses', [CourseController::class,'store']);
+Route::put('courses/{course}', [CourseController::class,'update']);
+Route::post('courses/{course}/archive', [CourseController::class,'archive']);
+Route::post('courses/{course}/activate', [CourseController::class,'activate']);
+Route::delete('courses/{course}', [CourseController::class,'destroy']);
+
+// Academic Years
+Route::get('academic-years', [AcademicYearController::class,'index']);
+Route::post('academic-years', [AcademicYearController::class,'store']);
+Route::put('academic-years/{academicYear}', [AcademicYearController::class,'update']);
+Route::post('academic-years/{academicYear}/archive', [AcademicYearController::class,'archive']);
+Route::post('academic-years/{academicYear}/activate', [AcademicYearController::class,'activate']);
+Route::delete('academic-years/{academicYear}', [AcademicYearController::class,'destroy']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

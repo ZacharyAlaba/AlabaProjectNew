@@ -88,10 +88,24 @@ function getActivityTitle(type) {
     }
 }
 
+// Add status normalization
+function normalizeStatus(s) {
+  if (!s) return s;
+  const up = s.toUpperCase();
+  if (up === "ACTIVE") return "Active";
+  if (up === "OFFLINE") return "Offline";
+  if (up === "GRADUATED") return "Graduated";
+  return s;
+}
+
 export default function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [students, setStudents] = useState(JSON.parse(localStorage.getItem("students") || "[]"));
-    const [faculty, setFaculty] = useState(JSON.parse(localStorage.getItem("faculty") || "[]"));
+    const [students, setStudents] = useState(
+        JSON.parse(localStorage.getItem("students") || "[]").map(s => ({ ...s, status: normalizeStatus(s.status) }))
+    );
+    const [faculty, setFaculty] = useState(
+        JSON.parse(localStorage.getItem("faculty") || "[]").map(f => ({ ...f, status: normalizeStatus(f.status) }))
+    );
     const [facultyDistribution, setFacultyDistribution] = useState({});
     const [studentEnrollment, setStudentEnrollment] = useState({ labels: [], datasets: [] });
     const [growthTrends, setGrowthTrends] = useState({ labels: [], datasets: [] });
@@ -102,8 +116,8 @@ export default function AdminDashboard() {
     const profile = getProfile();
 
     // Only count ACTIVE
-    const activeStudents = students.filter(s => s.status === "ACTIVE");
-    const activeFaculty = faculty.filter(f => f.status === "ACTIVE");
+    const activeStudents = students.filter(s => s.status === "Active");
+    const activeFaculty = faculty.filter(f => f.status === "Active");
 
     // Calculate average GPA for active students
     const avg_gpa =
@@ -120,18 +134,18 @@ export default function AdminDashboard() {
     // Fetch live stats from API
     useEffect(() => {
         axios.get("/api/students").then(res => {
-            if (Array.isArray(res.data)) {
-                setStudents(res.data);
-            } else {
-                setStudents([]);
-            }
+            const list = Array.isArray(res.data)
+              ? res.data.map(s => ({ ...s, status: normalizeStatus(s.status) }))
+              : [];
+            setStudents(list);
+            localStorage.setItem("students", JSON.stringify(list));
         });
         axios.get("/api/faculty").then(res => {
-            if (Array.isArray(res.data)) {
-                setFaculty(res.data);
-            } else {
-                setFaculty([]);
-            }
+            const list = Array.isArray(res.data)
+              ? res.data.map(f => ({ ...f, status: normalizeStatus(f.status) }))
+              : [];
+            setFaculty(list);
+            localStorage.setItem("faculty", JSON.stringify(list));
         });
     }, []);
 
@@ -279,17 +293,10 @@ export default function AdminDashboard() {
         navigate("/");
     };
 
-    // Calculate total students and percent active
+    // Stats (adjust student card to show total + active)
     const totalStudents = students.length;
-    const percentActiveStudents = totalStudents > 0 ? ((activeStudents.length / totalStudents) * 100).toFixed(1) : "0.0";
-
-    // Calculate total faculty and active members
     const totalFaculty = faculty.length;
-    const activeFacultyCount = activeFaculty.length;
-
-    // Calculate total active courses and departments
-    const totalPrograms = activeCourses; // already filtered to active
-    const totalDepartments = activeDepartments; // already filtered to active
+    const percentActiveStudents = totalStudents > 0 ? ((activeStudents.length / totalStudents) * 100).toFixed(1) : "0.0";
 
     return (
         <div className="dashboard-container">
@@ -388,10 +395,10 @@ export default function AdminDashboard() {
                                 alignItems: "center"
                             }}>
                                 <i className="fas fa-user-graduate card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
-                                <h3 style={{ margin: 0 }}>Total Students</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeStudents.length}</p>
+                                <h3 style={{ margin: 0 }}>Students</h3>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalStudents}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>
-                                    +{percentActiveStudents}% active
+                                  {activeStudents.length} active ({percentActiveStudents}%)
                                 </span>
                             </div>
                             <div className="card faculty-card" style={{
@@ -406,10 +413,10 @@ export default function AdminDashboard() {
                                 alignItems: "center"
                             }}>
                                 <i className="fas fa-chalkboard-teacher card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
-                                <h3 style={{ margin: 0 }}>Faculty Members</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeFacultyCount}</p>
+                                <h3 style={{ margin: 0 }}>Faculty</h3>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalFaculty}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>
-                                    +{activeFacultyCount} active members
+                                  {activeFaculty.length} active
                                 </span>
                             </div>
                             <div className="card courses-card" style={{
@@ -425,9 +432,9 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-book card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Active Courses</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalPrograms}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeCourses}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>
-                                    +{totalPrograms} total programs
+                                    +{activeCourses} total programs
                                 </span>
                             </div>
                             <div className="card departments-card" style={{
@@ -443,9 +450,9 @@ export default function AdminDashboard() {
                             }}>
                                 <i className="fas fa-building card-icon" style={{ fontSize: "32px", marginBottom: "8px" }}></i>
                                 <h3 style={{ margin: 0 }}>Departments</h3>
-                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{totalDepartments}</p>
+                                <p style={{ fontSize: "28px", fontWeight: "bold", margin: "8px 0" }}>{activeDepartments}</p>
                                 <span className="growth" style={{ color: "#22c55e" }}>
-                                    +{totalDepartments} total departments
+                                    +{activeDepartments} total departments
                                 </span>
                             </div>
                         </section>

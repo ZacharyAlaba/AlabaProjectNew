@@ -84412,10 +84412,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var chart_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! chart.js */ "./node_modules/chart.js/dist/chart.js");
 /* harmony import */ var _ProfileWidget__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ProfileWidget */ "./resources/js/components/ProfileWidget.js");
 /* harmony import */ var _MyProfile__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./MyProfile */ "./resources/js/components/MyProfile.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
 function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -84511,16 +84517,34 @@ function getActivityTitle(type) {
       return "Activity";
   }
 }
+
+// Add status normalization
+function normalizeStatus(s) {
+  if (!s) return s;
+  var up = s.toUpperCase();
+  if (up === "ACTIVE") return "Active";
+  if (up === "OFFLINE") return "Offline";
+  if (up === "GRADUATED") return "Graduated";
+  return s;
+}
 function AdminDashboard() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(true),
     _useState2 = _slicedToArray(_useState, 2),
     sidebarOpen = _useState2[0],
     setSidebarOpen = _useState2[1];
-  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("students") || "[]")),
+  var _useState3 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("students") || "[]").map(function (s) {
+      return _objectSpread(_objectSpread({}, s), {}, {
+        status: normalizeStatus(s.status)
+      });
+    })),
     _useState4 = _slicedToArray(_useState3, 2),
     students = _useState4[0],
     setStudents = _useState4[1];
-  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("faculty") || "[]")),
+  var _useState5 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(JSON.parse(localStorage.getItem("faculty") || "[]").map(function (f) {
+      return _objectSpread(_objectSpread({}, f), {}, {
+        status: normalizeStatus(f.status)
+      });
+    })),
     _useState6 = _slicedToArray(_useState5, 2),
     faculty = _useState6[0],
     setFaculty = _useState6[1];
@@ -84556,10 +84580,10 @@ function AdminDashboard() {
 
   // Only count ACTIVE
   var activeStudents = students.filter(function (s) {
-    return s.status === "ACTIVE";
+    return s.status === "Active";
   });
   var activeFaculty = faculty.filter(function (f) {
-    return f.status === "ACTIVE";
+    return f.status === "Active";
   });
 
   // Calculate average GPA for active students
@@ -84573,18 +84597,22 @@ function AdminDashboard() {
   // Fetch live stats from API
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/students").then(function (res) {
-      if (Array.isArray(res.data)) {
-        setStudents(res.data);
-      } else {
-        setStudents([]);
-      }
+      var list = Array.isArray(res.data) ? res.data.map(function (s) {
+        return _objectSpread(_objectSpread({}, s), {}, {
+          status: normalizeStatus(s.status)
+        });
+      }) : [];
+      setStudents(list);
+      localStorage.setItem("students", JSON.stringify(list));
     });
     axios__WEBPACK_IMPORTED_MODULE_1___default().get("/api/faculty").then(function (res) {
-      if (Array.isArray(res.data)) {
-        setFaculty(res.data);
-      } else {
-        setFaculty([]);
-      }
+      var list = Array.isArray(res.data) ? res.data.map(function (f) {
+        return _objectSpread(_objectSpread({}, f), {}, {
+          status: normalizeStatus(f.status)
+        });
+      }) : [];
+      setFaculty(list);
+      localStorage.setItem("faculty", JSON.stringify(list));
     });
   }, []);
 
@@ -84754,18 +84782,10 @@ function AdminDashboard() {
     };
   }();
 
-  // Calculate total students and percent active
+  // Stats (adjust student card to show total + active)
   var totalStudents = students.length;
-  var percentActiveStudents = totalStudents > 0 ? (activeStudents.length / totalStudents * 100).toFixed(1) : "0.0";
-
-  // Calculate total faculty and active members
   var totalFaculty = faculty.length;
-  var activeFacultyCount = activeFaculty.length;
-
-  // Calculate total active courses and departments
-  var totalPrograms = activeCourses; // already filtered to active
-  var totalDepartments = activeDepartments; // already filtered to active
-
+  var percentActiveStudents = totalStudents > 0 ? (activeStudents.length / totalStudents * 100).toFixed(1) : "0.0";
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "dashboard-container"
   }, sidebarOpen && /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("aside", {
@@ -84903,18 +84923,18 @@ function AdminDashboard() {
     style: {
       margin: 0
     }
-  }, "Total Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", {
+  }, "Students"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", {
     style: {
       fontSize: "28px",
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, activeStudents.length), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, totalStudents), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", percentActiveStudents, "% active")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, activeStudents.length, " active (", percentActiveStudents, "%)")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card faculty-card",
     style: {
       background: "#181826",
@@ -84937,18 +84957,18 @@ function AdminDashboard() {
     style: {
       margin: 0
     }
-  }, "Faculty Members"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", {
+  }, "Faculty"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("p", {
     style: {
       fontSize: "28px",
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, activeFacultyCount), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, totalFaculty), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", activeFacultyCount, " active members")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, activeFaculty.length, " active")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card courses-card",
     style: {
       background: "#181826",
@@ -84977,12 +84997,12 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, totalPrograms), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, activeCourses), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", totalPrograms, " total programs")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+  }, "+", activeCourses, " total programs")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     className: "card departments-card",
     style: {
       background: "#181826",
@@ -85011,12 +85031,12 @@ function AdminDashboard() {
       fontWeight: "bold",
       margin: "8px 0"
     }
-  }, totalDepartments), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
+  }, activeDepartments), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("span", {
     className: "growth",
     style: {
       color: "#22c55e"
     }
-  }, "+", totalDepartments, " total departments"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
+  }, "+", activeDepartments, " total departments"))), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("section", {
     className: "panels-grid",
     style: {
       display: "grid",
@@ -88578,6 +88598,10 @@ function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t =
 function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
 function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
 function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i["return"]) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -88656,36 +88680,36 @@ var initialDepartments = [{
 
 // Example initial courses (link to departments above)
 var initialCourses = [{
-  name: "BS Computer Science",
-  code: "BSCS",
+  name: "BSIT",
+  code: "INFORMATION TECHNOLOGY",
   department: "Computer Studies",
   credits: 120,
   duration: 4,
   status: "Active"
 }, {
-  name: "BS Accountancy",
-  code: "BSA",
+  name: "BSA",
+  code: "ACCOUNTANT",
   department: "Accountancy",
   credits: 120,
   duration: 4,
   status: "Active"
 }, {
-  name: "BS Nursing",
-  code: "BSN",
+  name: "BSN",
+  code: "NURSE",
   department: "Nursing",
   credits: 120,
   duration: 4,
   status: "Active"
 }, {
-  name: "BS Business Administration",
-  code: "BSBA",
+  name: "BSBA",
+  code: "BUSINESS",
   department: "Business Administration",
   credits: 120,
   duration: 4,
   status: "Active"
 }, {
-  name: "BS Tourism Management",
-  code: "BSTM",
+  name: "BSTM",
+  code: "TYMES",
   department: "Tourism and Hospitality Management",
   credits: 120,
   duration: 4,
@@ -88711,6 +88735,11 @@ var initialAcademicYears = [{
   status: "Completed",
   start: "2022-09-01",
   end: "2023-06-30"
+}, {
+  name: "2021-2022",
+  status: "Completed",
+  start: "2021-09-01",
+  end: "2022-06-30"
 }];
 
 // Seed once, then never overwrite user's data
@@ -88745,6 +88774,51 @@ function getInitialAcademicYears() {
   var stored = localStorage.getItem("academicYears");
   return stored ? JSON.parse(stored) : [];
 }
+
+// Map helpers (API -> UI shape)
+var mapDepartmentsAPI = function mapDepartmentsAPI() {
+  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return arr.map(function (x) {
+    var _x$established, _x$head, _x$faculty_count, _x$student_count;
+    return {
+      id: x.id,
+      name: x.name,
+      established: (_x$established = x.established) !== null && _x$established !== void 0 ? _x$established : "",
+      head: (_x$head = x.head) !== null && _x$head !== void 0 ? _x$head : "",
+      faculty: (_x$faculty_count = x.faculty_count) !== null && _x$faculty_count !== void 0 ? _x$faculty_count : 0,
+      students: (_x$student_count = x.student_count) !== null && _x$student_count !== void 0 ? _x$student_count : 0,
+      status: x.status || "Active"
+    };
+  });
+};
+var mapCoursesAPI = function mapCoursesAPI() {
+  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return arr.map(function (x) {
+    var _x$department, _x$credits, _x$duration;
+    return {
+      id: x.id,
+      name: x.name,
+      code: x.code,
+      department: ((_x$department = x.department) === null || _x$department === void 0 ? void 0 : _x$department.name) || x.department || "",
+      // string only
+      credits: (_x$credits = x.credits) !== null && _x$credits !== void 0 ? _x$credits : 0,
+      duration: (_x$duration = x.duration) !== null && _x$duration !== void 0 ? _x$duration : 4,
+      status: x.status || "Active"
+    };
+  });
+};
+var mapYearsAPI = function mapYearsAPI() {
+  var arr = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  return arr.map(function (x) {
+    return {
+      id: x.id,
+      name: x.name,
+      status: x.status || "Planned",
+      start: x.start || "",
+      end: x.end || ""
+    };
+  });
+};
 function Settings() {
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)("Courses"),
     _useState2 = _slicedToArray(_useState, 2),
@@ -88815,6 +88889,46 @@ function Settings() {
   react__WEBPACK_IMPORTED_MODULE_0__.useEffect(function () {
     localStorage.setItem("academicYears", JSON.stringify(academicYears));
   }, [academicYears]);
+
+  // Fetch from API on mount
+  (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var _yield$Promise$all, _yield$Promise$all2, dRes, cRes, yRes, _yield$Promise$all3, _yield$Promise$all4, d, c, y, _t;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            _context.p = 0;
+            _context.n = 1;
+            return Promise.all([fetch('/api/departments'), fetch('/api/courses'), fetch('/api/academic-years')]);
+          case 1:
+            _yield$Promise$all = _context.v;
+            _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 3);
+            dRes = _yield$Promise$all2[0];
+            cRes = _yield$Promise$all2[1];
+            yRes = _yield$Promise$all2[2];
+            _context.n = 2;
+            return Promise.all([dRes.json(), cRes.json(), yRes.json()]);
+          case 2:
+            _yield$Promise$all3 = _context.v;
+            _yield$Promise$all4 = _slicedToArray(_yield$Promise$all3, 3);
+            d = _yield$Promise$all4[0];
+            c = _yield$Promise$all4[1];
+            y = _yield$Promise$all4[2];
+            setDepartments(mapDepartmentsAPI(d));
+            setCourses(mapCoursesAPI(c));
+            setAcademicYears(mapYearsAPI(y));
+            _context.n = 4;
+            break;
+          case 3:
+            _context.p = 3;
+            _t = _context.v;
+            console.error(_t);
+          case 4:
+            return _context.a(2);
+        }
+      }, _callee, null, [[0, 3]]);
+    }))();
+  }, []);
 
   // Archive/Activate handlers
   var handleArchiveCourse = function handleArchiveCourse(code) {
@@ -89012,6 +89126,7 @@ function Settings() {
       marginTop: "24px"
     }
   }, activeCourses.map(function (course) {
+    var _course$department;
     return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       key: course.code,
       style: {
@@ -89102,7 +89217,7 @@ function Settings() {
         fontSize: "14px",
         marginBottom: "4px"
       }
-    }, "Department: ", course.department), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
+    }, "Department: ", typeof course.department === "string" ? course.department : ((_course$department = course.department) === null || _course$department === void 0 ? void 0 : _course$department.name) || ""), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
       style: {
         fontSize: "14px",
         marginBottom: "4px"
@@ -89652,10 +89767,10 @@ function Settings() {
 }
 
 // Modal component
-function Modal(_ref) {
-  var title = _ref.title,
-    children = _ref.children,
-    onClose = _ref.onClose;
+function Modal(_ref2) {
+  var title = _ref2.title,
+    children = _ref2.children,
+    onClose = _ref2.onClose;
   return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement("div", {
     style: {
       position: "fixed",
@@ -89694,11 +89809,11 @@ function Modal(_ref) {
 }
 
 // Course Form component
-function CourseForm(_ref2) {
-  var initial = _ref2.initial,
-    departments = _ref2.departments,
-    _onSubmit = _ref2.onSubmit,
-    onCancel = _ref2.onCancel;
+function CourseForm(_ref3) {
+  var initial = _ref3.initial,
+    departments = _ref3.departments,
+    _onSubmit = _ref3.onSubmit,
+    onCancel = _ref3.onCancel;
   var _useState27 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       code: "",
@@ -89815,10 +89930,10 @@ function CourseForm(_ref2) {
 }
 
 // Department Form component
-function DepartmentForm(_ref3) {
-  var initial = _ref3.initial,
-    _onSubmit2 = _ref3.onSubmit,
-    onCancel = _ref3.onCancel;
+function DepartmentForm(_ref4) {
+  var initial = _ref4.initial,
+    _onSubmit2 = _ref4.onSubmit,
+    onCancel = _ref4.onCancel;
   var _useState29 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       established: "",
@@ -89944,10 +90059,10 @@ function DepartmentForm(_ref3) {
 }
 
 // Academic Year Form component
-function AcademicYearForm(_ref4) {
-  var initial = _ref4.initial,
-    _onSubmit3 = _ref4.onSubmit,
-    onCancel = _ref4.onCancel;
+function AcademicYearForm(_ref5) {
+  var initial = _ref5.initial,
+    _onSubmit3 = _ref5.onSubmit,
+    onCancel = _ref5.onCancel;
   var _useState31 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(initial || {
       name: "",
       status: "Planned",
